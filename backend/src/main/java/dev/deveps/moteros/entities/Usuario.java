@@ -1,5 +1,6 @@
 package dev.deveps.moteros.entities;
 
+import dev.deveps.moteros.entities.enums.RolUsuario;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -52,9 +53,14 @@ public class Usuario {
     @Column(nullable = false)
     private Boolean activo;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private RolUsuario rol;
+
     @PrePersist
     void prePersist() {
         if (uuid == null) uuid = UUID.randomUUID().toString();
         if (activo == null) activo = Boolean.TRUE;
+        if (rol == null) rol = RolUsuario.user;
     }
 }

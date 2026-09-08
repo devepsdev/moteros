@@ -49,7 +49,10 @@ class AuthServiceImplTest {
         lenient().when(motoRepository.countByUsuarioId(anyInt())).thenReturn(0L);
         lenient().when(rutaRepository.countByCreadorId(anyInt())).thenReturn(0L);
         lenient().when(amistadRepository.countAmigosAceptados(anyInt())).thenReturn(0L);
-        lenient().when(jwtUtil.generateToken(anyString())).thenReturn("token-jwt");
+        lenient().when(jwtUtil.generateToken(anyString(), anyString())).thenReturn("token-jwt");
+        // Por defecto ya hay un admin -> los nuevos registros son 'user'
+        lenient().when(usuarioRepository.countByRol(dev.deveps.moteros.entities.enums.RolUsuario.admin))
+                .thenReturn(1L);
     }
 
     private RegistroUsuarioDTO registro() {
@@ -60,7 +63,8 @@ class AuthServiceImplTest {
 
     private Usuario usuario(boolean activo) {
         return Usuario.builder().id(1).uuid("uuid-1").nombreUsuario("nuevo").nombreCompleto("Nuevo Motero")
-                .email("nuevo@test.com").passwordHash("hashed").activo(activo).build();
+                .email("nuevo@test.com").passwordHash("hashed").activo(activo)
+                .rol(dev.deveps.moteros.entities.enums.RolUsuario.user).build();
     }
 
     @Test
@@ -68,13 +72,34 @@ class AuthServiceImplTest {
         when(usuarioRepository.existsByEmail("nuevo@test.com")).thenReturn(false);
         when(usuarioRepository.existsByNombreUsuario("nuevo")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("hashed");
-        when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuario(true));
+        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> {
+            Usuario u = inv.getArgument(0);
+            u.setId(1);
+            return u;
+        });
 
         LoginResponseDTO res = authService.registro(registro());
 
         assertThat(res.getToken()).isEqualTo("token-jwt");
         assertThat(res.getUsuario().getEmail()).isEqualTo("nuevo@test.com");
-        assertThat(res.getUsuario().getNumAmigos()).isZero();
+        assertThat(res.getUsuario().getRol()).isEqualTo(dev.deveps.moteros.entities.enums.RolUsuario.user);
+    }
+
+    @Test
+    void registro_primerUsuarioDeLaPlataforma_esAdmin() {
+        when(usuarioRepository.countByRol(dev.deveps.moteros.entities.enums.RolUsuario.admin)).thenReturn(0L);
+        when(usuarioRepository.existsByEmail("nuevo@test.com")).thenReturn(false);
+        when(usuarioRepository.existsByNombreUsuario("nuevo")).thenReturn(false);
+        when(passwordEncoder.encode("password123")).thenReturn("hashed");
+        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> {
+            Usuario u = inv.getArgument(0);
+            u.setId(1);
+            return u;
+        });
+
+        LoginResponseDTO res = authService.registro(registro());
+
+        assertThat(res.getUsuario().getRol()).isEqualTo(dev.deveps.moteros.entities.enums.RolUsuario.admin);
     }
 
     @Test

@@ -11,12 +11,21 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface RutaRepository extends JpaRepository<Ruta, Integer> {
 
     Optional<Ruta> findByUuid(String uuid);
+
+    /** [Dificultad, Long] con el numero de rutas de cada dificultad. */
+    @Query("SELECT r.dificultad, COUNT(r) FROM Ruta r GROUP BY r.dificultad")
+    List<Object[]> contarPorDificultad();
+
+    /** [TipoTerreno, Long] con el numero de rutas de cada tipo de terreno. */
+    @Query("SELECT r.tipoTerreno, COUNT(r) FROM Ruta r GROUP BY r.tipoTerreno")
+    List<Object[]> contarPorTerreno();
 
     Page<Ruta> findByCreadorUuid(String creadorUuid, Pageable pageable);
 

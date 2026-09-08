@@ -26,7 +26,8 @@ CREATE TABLE usuarios (
     biografia VARCHAR(280),
     foto_perfil_url VARCHAR(255),
     fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
-    activo BOOLEAN DEFAULT TRUE
+    activo BOOLEAN DEFAULT TRUE,
+    rol ENUM('user','admin') NOT NULL DEFAULT 'user'
 ) ENGINE=InnoDB;
 
 -- ============================================================

@@ -40,6 +40,7 @@ public class EntityDtoMapper {
                 .fotoPerfilUrl(u.getFotoPerfilUrl())
                 .fechaRegistro(u.getFechaRegistro())
                 .activo(u.getActivo())
+                .rol(u.getRol())
                 .numMotos(numMotos)
                 .numRutas(numRutas)
                 .numAmigos(numAmigos)

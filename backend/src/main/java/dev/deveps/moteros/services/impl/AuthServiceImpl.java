@@ -5,6 +5,7 @@ import dev.deveps.moteros.dto.LoginRequestDTO;
 import dev.deveps.moteros.dto.LoginResponseDTO;
 import dev.deveps.moteros.dto.RegistroUsuarioDTO;
 import dev.deveps.moteros.entities.Usuario;
+import dev.deveps.moteros.entities.enums.RolUsuario;
 import dev.deveps.moteros.exceptions.BadRequestException;
 import dev.deveps.moteros.exceptions.DuplicateResourceException;
 import dev.deveps.moteros.mapper.EntityDtoMapper;
@@ -43,6 +44,11 @@ public class AuthServiceImpl implements AuthService {
             throw new DuplicateResourceException("El nombre de usuario ya esta en uso: " + dto.getNombreUsuario());
         }
 
+        // El primer usuario registrado en la plataforma queda como admin; el resto, como user.
+        RolUsuario rol = usuarioRepository.countByRol(RolUsuario.admin) == 0
+                ? RolUsuario.admin
+                : RolUsuario.user;
+
         Usuario usuario = Usuario.builder()
                 .nombreUsuario(dto.getNombreUsuario())
                 .nombreCompleto(dto.getNombreCompleto())
@@ -50,6 +56,7 @@ public class AuthServiceImpl implements AuthService {
                 .passwordHash(passwordEncoder.encode(dto.getPassword()))
                 .ciudad(dto.getCiudad())
                 .activo(true)
+                .rol(rol)
                 .build();
 
         Usuario guardado = usuarioRepository.save(usuario);
@@ -84,7 +91,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private LoginResponseDTO construirRespuesta(Usuario usuario) {
-        String token = jwtUtil.generateToken(usuario.getEmail());
+        String token = jwtUtil.generateToken(usuario.getEmail(),
+                usuario.getRol() != null ? usuario.getRol().name() : RolUsuario.user.name());
         long numMotos = motoRepository.countByUsuarioId(usuario.getId());
         long numRutas = rutaRepository.countByCreadorId(usuario.getId());
         long numAmigos = amistadRepository.countAmigosAceptados(usuario.getId());

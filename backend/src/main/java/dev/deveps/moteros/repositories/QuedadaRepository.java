@@ -11,12 +11,19 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface QuedadaRepository extends JpaRepository<Quedada, Integer> {
 
     Optional<Quedada> findByUuid(String uuid);
+
+    long countByFechaHoraAfter(LocalDateTime momento);
+
+    /** [EstadoQuedada, Long] con el numero de quedadas en cada estado. */
+    @Query("SELECT q.estado, COUNT(q) FROM Quedada q GROUP BY q.estado")
+    List<Object[]> contarPorEstado();
 
     Page<Quedada> findByOrganizadorUuid(String organizadorUuid, Pageable pageable);
 

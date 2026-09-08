@@ -2,6 +2,7 @@ package dev.deveps.moteros.repositories;
 
 import dev.deveps.moteros.entities.Moto;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,4 +18,8 @@ public interface MotoRepository extends JpaRepository<Moto, Integer> {
     long countByUsuarioId(Integer usuarioId);
 
     long countByUsuarioUuid(String usuarioUuid);
+
+    /** [TipoMoto, Long] con el numero de motos de cada tipo. */
+    @Query("SELECT m.tipo, COUNT(m) FROM Moto m GROUP BY m.tipo")
+    List<Object[]> contarPorTipo();
 }

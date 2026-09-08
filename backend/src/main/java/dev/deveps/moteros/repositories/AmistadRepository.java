@@ -19,6 +19,8 @@ public interface AmistadRepository extends JpaRepository<Amistad, Integer> {
 
     Optional<Amistad> findByUsuarioIdAndAmigoId(Integer usuarioId, Integer amigoId);
 
+    long countByEstado(EstadoAmistad estado);
+
     /** Relacion entre dos usuarios en cualquier direccion. */
     @Query("""
             SELECT a FROM Amistad a

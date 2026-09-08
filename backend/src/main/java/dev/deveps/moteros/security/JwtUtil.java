@@ -24,10 +24,11 @@ public class JwtUtil {
         this.jwtExpiration = jwtExpiration;
     }
 
-    public String generateToken(String subject) {
+    public String generateToken(String subject, String rol) {
         Date now = new Date();
         return Jwts.builder()
                 .setSubject(subject)
+                .claim("rol", rol)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + jwtExpiration))
                 .signWith(key)
@@ -41,6 +42,15 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    public String getRolFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("rol", String.class);
     }
 
     public Date getExpirationDateFromToken(String token) {

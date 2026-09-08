@@ -1,5 +1,6 @@
 package dev.deveps.moteros.dto;
 
+import dev.deveps.moteros.entities.enums.RolUsuario;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,6 +32,8 @@ public class UsuarioResponseDTO {
     private LocalDateTime fechaRegistro;
 
     private Boolean activo;
+
+    private RolUsuario rol;
 
     // ===== CONTADORES (opcionales, los rellena el servicio si procede) =====
     private Long numMotos;
