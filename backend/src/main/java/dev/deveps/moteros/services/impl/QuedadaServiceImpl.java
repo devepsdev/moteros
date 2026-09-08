@@ -23,6 +23,7 @@ import dev.deveps.moteros.security.UsuarioAutenticadoProvider;
 import dev.deveps.moteros.services.QuedadaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,8 +56,10 @@ public class QuedadaServiceImpl implements QuedadaService {
     public Page<QuedadaSummaryDTO> filtrar(QuedadaFilterDTO f, Pageable pageable) {
         Page<Quedada> pagina;
         if (f.hasGeoFilter()) {
+            // La query nativa no admite ORDER BY por nombre de propiedad JPA: se pagina sin sort.
+            Pageable sinSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
             pagina = quedadaRepository.buscarCercanas(
-                    f.getLatitud().doubleValue(), f.getLongitud().doubleValue(), f.getRadioKm(), pageable);
+                    f.getLatitud().doubleValue(), f.getLongitud().doubleValue(), f.getRadioKm(), sinSort);
         } else {
             LocalDateTime ahora = Boolean.TRUE.equals(f.getSoloProximas()) ? LocalDateTime.now() : null;
             pagina = quedadaRepository.filtrar(

@@ -24,6 +24,7 @@ import dev.deveps.moteros.security.UsuarioAutenticadoProvider;
 import dev.deveps.moteros.services.RutaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,8 +55,10 @@ public class RutaServiceImpl implements RutaService {
     public Page<RutaSummaryDTO> filtrar(RutaFilterDTO f, Pageable pageable) {
         Page<Ruta> pagina;
         if (f.hasGeoFilter()) {
+            // La query nativa no admite ORDER BY por nombre de propiedad JPA: se pagina sin sort.
+            Pageable sinSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
             pagina = rutaRepository.buscarCercanas(
-                    f.getLatitud().doubleValue(), f.getLongitud().doubleValue(), f.getRadioKm(), pageable);
+                    f.getLatitud().doubleValue(), f.getLongitud().doubleValue(), f.getRadioKm(), sinSort);
         } else {
             pagina = rutaRepository.filtrar(
                     limpiar(f.getNombre()),
