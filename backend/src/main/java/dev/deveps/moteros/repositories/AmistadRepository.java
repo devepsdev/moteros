@@ -35,10 +35,13 @@ public interface AmistadRepository extends JpaRepository<Amistad, Integer> {
 
     /** Amigos aceptados de un usuario (en cualquiera de los dos lados de la relacion). */
     @Query("""
-            SELECT CASE WHEN a.usuario.id = :usuarioId THEN a.amigo ELSE a.usuario END
-            FROM Amistad a
-            WHERE a.estado = dev.deveps.moteros.entities.enums.EstadoAmistad.aceptada
-              AND (a.usuario.id = :usuarioId OR a.amigo.id = :usuarioId)
+            SELECT u FROM Usuario u WHERE
+            u.id IN (SELECT a.amigo.id FROM Amistad a
+                     WHERE a.usuario.id = :usuarioId
+                       AND a.estado = dev.deveps.moteros.entities.enums.EstadoAmistad.aceptada)
+            OR u.id IN (SELECT a.usuario.id FROM Amistad a
+                        WHERE a.amigo.id = :usuarioId
+                          AND a.estado = dev.deveps.moteros.entities.enums.EstadoAmistad.aceptada)
             """)
     Page<Usuario> findAmigosAceptados(@Param("usuarioId") Integer usuarioId, Pageable pageable);
 
