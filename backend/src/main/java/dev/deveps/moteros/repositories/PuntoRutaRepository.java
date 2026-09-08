@@ -2,7 +2,6 @@ package dev.deveps.moteros.repositories;
 
 import dev.deveps.moteros.entities.PuntoRuta;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -20,6 +19,7 @@ public interface PuntoRutaRepository extends JpaRepository<PuntoRuta, Integer> {
     boolean existsByRutaIdAndOrden(Integer rutaId, Integer orden);
 
     /** Borra el track completo de una ruta (para reemplazarlo al editar). */
-    @Modifying
     void deleteByRutaId(Integer rutaId);
+
+    long countByRutaId(Integer rutaId);
 }

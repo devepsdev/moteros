@@ -4,7 +4,6 @@ import dev.deveps.moteros.entities.LikePublicacion;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -24,6 +23,5 @@ public interface LikePublicacionRepository extends JpaRepository<LikePublicacion
 
     Page<LikePublicacion> findByPublicacionUuidOrderByFechaDesc(String publicacionUuid, Pageable pageable);
 
-    @Modifying
     void deleteByPublicacionIdAndUsuarioId(Integer publicacionId, Integer usuarioId);
 }
