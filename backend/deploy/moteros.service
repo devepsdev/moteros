@@ -1,0 +1,33 @@
+[Unit]
+Description=moter@s API (Spring Boot)
+Documentation=https://github.com/devepsdev/moteros
+After=network-online.target mysql.service
+Wants=network-online.target
+Requires=mysql.service
+
+[Service]
+Type=simple
+User=moteros
+Group=moteros
+WorkingDirectory=/opt/moteros
+EnvironmentFile=/etc/moteros/moteros.env
+ExecStart=/usr/bin/java $JAVA_OPTS -jar /opt/moteros/moteros.jar --spring.profiles.active=prod
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+
+# --- Endurecimiento ---
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/var/lib/moteros
+
+[Install]
+WantedBy=multi-user.target
