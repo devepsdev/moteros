@@ -72,6 +72,36 @@ class AuthControllerTest {
     }
 
     @Test
+    void refresh_devuelve200YNuevoPar() throws Exception {
+        when(authService.refrescar(any())).thenReturn(LoginResponseDTO.builder()
+                .token("nuevo.jwt").refreshToken("nuevo.refresh").build());
+
+        mockMvc.perform(post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\":\"rt-viejo\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.token").value("nuevo.jwt"))
+                .andExpect(jsonPath("$.data.refreshToken").value("nuevo.refresh"));
+    }
+
+    @Test
+    void refresh_sinRefreshToken_devuelve400() throws Exception {
+        mockMvc.perform(post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void logout_devuelve200() throws Exception {
+        mockMvc.perform(post("/api/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\":\"rt-1\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
     void cambiarPassword_devuelve200() throws Exception {
         mockMvc.perform(patch("/api/auth/password")
                         .contentType(MediaType.APPLICATION_JSON)

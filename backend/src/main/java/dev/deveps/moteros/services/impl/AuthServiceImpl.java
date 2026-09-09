@@ -3,7 +3,9 @@ package dev.deveps.moteros.services.impl;
 import dev.deveps.moteros.dto.CambioPasswordDTO;
 import dev.deveps.moteros.dto.LoginRequestDTO;
 import dev.deveps.moteros.dto.LoginResponseDTO;
+import dev.deveps.moteros.dto.RefreshTokenRequestDTO;
 import dev.deveps.moteros.dto.RegistroUsuarioDTO;
+import dev.deveps.moteros.entities.RefreshToken;
 import dev.deveps.moteros.entities.Usuario;
 import dev.deveps.moteros.entities.enums.RolUsuario;
 import dev.deveps.moteros.exceptions.BadRequestException;
@@ -16,6 +18,7 @@ import dev.deveps.moteros.repositories.UsuarioRepository;
 import dev.deveps.moteros.security.JwtUtil;
 import dev.deveps.moteros.security.UsuarioAutenticadoProvider;
 import dev.deveps.moteros.services.AuthService;
+import dev.deveps.moteros.services.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,7 @@ public class AuthServiceImpl implements AuthService {
     private final AmistadRepository amistadRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenService refreshTokenService;
     private final UsuarioAutenticadoProvider usuarioAutenticado;
     private final EntityDtoMapper mapper;
 
@@ -64,7 +68,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public LoginResponseDTO login(LoginRequestDTO dto) {
         Usuario usuario = usuarioRepository
                 .findByEmailOrNombreUsuario(dto.getIdentificador(), dto.getIdentificador())
@@ -81,6 +84,26 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public LoginResponseDTO refrescar(RefreshTokenRequestDTO dto) {
+        RefreshToken nuevo = refreshTokenService.validarYRotar(dto.getRefreshToken());
+        Usuario usuario = nuevo.getUsuario();
+        if (Boolean.FALSE.equals(usuario.getActivo())) {
+            throw new BadRequestException("La cuenta esta desactivada");
+        }
+        return construirRespuesta(usuario, nuevo.getToken());
+    }
+
+    @Override
+    public void logout(RefreshTokenRequestDTO dto) {
+        refreshTokenService.revocar(dto.getRefreshToken());
+    }
+
+    @Override
+    public void logoutTodos() {
+        refreshTokenService.revocarTodos(usuarioAutenticado.obtenerIdUsuarioActual());
+    }
+
+    @Override
     public void cambiarPassword(CambioPasswordDTO dto) {
         Usuario usuario = usuarioAutenticado.obtenerUsuarioActual();
         if (!passwordEncoder.matches(dto.getPasswordActual(), usuario.getPasswordHash())) {
@@ -88,9 +111,17 @@ public class AuthServiceImpl implements AuthService {
         }
         usuario.setPasswordHash(passwordEncoder.encode(dto.getPasswordNueva()));
         usuarioRepository.save(usuario);
+        // Al cambiar la contrasena se cierran todas las sesiones.
+        refreshTokenService.revocarTodos(usuario.getId());
     }
 
+    // ===================== PRIVADOS =====================
+
     private LoginResponseDTO construirRespuesta(Usuario usuario) {
+        return construirRespuesta(usuario, refreshTokenService.crear(usuario).getToken());
+    }
+
+    private LoginResponseDTO construirRespuesta(Usuario usuario, String refreshToken) {
         String token = jwtUtil.generateToken(usuario.getEmail(),
                 usuario.getRol() != null ? usuario.getRol().name() : RolUsuario.user.name());
         long numMotos = motoRepository.countByUsuarioId(usuario.getId());
@@ -99,6 +130,8 @@ public class AuthServiceImpl implements AuthService {
         return LoginResponseDTO.builder()
                 .token(token)
                 .type("Bearer")
+                .expiresIn(jwtUtil.getExpirationSeconds())
+                .refreshToken(refreshToken)
                 .usuario(mapper.usuarioResponse(usuario, numMotos, numRutas, numAmigos))
                 .build();
     }

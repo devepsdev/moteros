@@ -2,7 +2,9 @@ package dev.deveps.moteros.services.impl;
 
 import dev.deveps.moteros.dto.LoginRequestDTO;
 import dev.deveps.moteros.dto.LoginResponseDTO;
+import dev.deveps.moteros.dto.RefreshTokenRequestDTO;
 import dev.deveps.moteros.dto.RegistroUsuarioDTO;
+import dev.deveps.moteros.entities.RefreshToken;
 import dev.deveps.moteros.entities.Usuario;
 import dev.deveps.moteros.exceptions.BadRequestException;
 import dev.deveps.moteros.exceptions.DuplicateResourceException;
@@ -13,6 +15,7 @@ import dev.deveps.moteros.repositories.RutaRepository;
 import dev.deveps.moteros.repositories.UsuarioRepository;
 import dev.deveps.moteros.security.JwtUtil;
 import dev.deveps.moteros.security.UsuarioAutenticadoProvider;
+import dev.deveps.moteros.services.RefreshTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,6 +41,7 @@ class AuthServiceImplTest {
     @Mock private AmistadRepository amistadRepository;
     @Mock private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     @Mock private JwtUtil jwtUtil;
+    @Mock private RefreshTokenService refreshTokenService;
     @Mock private UsuarioAutenticadoProvider usuarioAutenticado;
 
     private AuthServiceImpl authService;
@@ -45,11 +49,15 @@ class AuthServiceImplTest {
     @BeforeEach
     void setUp() {
         authService = new AuthServiceImpl(usuarioRepository, motoRepository, rutaRepository,
-                amistadRepository, passwordEncoder, jwtUtil, usuarioAutenticado, new EntityDtoMapper());
+                amistadRepository, passwordEncoder, jwtUtil, refreshTokenService, usuarioAutenticado,
+                new EntityDtoMapper());
         lenient().when(motoRepository.countByUsuarioId(anyInt())).thenReturn(0L);
         lenient().when(rutaRepository.countByCreadorId(anyInt())).thenReturn(0L);
         lenient().when(amistadRepository.countAmigosAceptados(anyInt())).thenReturn(0L);
         lenient().when(jwtUtil.generateToken(anyString(), anyString())).thenReturn("token-jwt");
+        lenient().when(jwtUtil.getExpirationSeconds()).thenReturn(900L);
+        lenient().when(refreshTokenService.crear(any())).thenAnswer(inv ->
+                RefreshToken.builder().token("refresh-nuevo").usuario(inv.getArgument(0)).build());
         // Por defecto ya hay un admin -> los nuevos registros son 'user'
         lenient().when(usuarioRepository.countByRol(dev.deveps.moteros.entities.enums.RolUsuario.admin))
                 .thenReturn(1L);
@@ -125,7 +133,47 @@ class AuthServiceImplTest {
         LoginResponseDTO res = authService.login(new LoginRequestDTO("nuevo", "password123"));
 
         assertThat(res.getToken()).isEqualTo("token-jwt");
+        assertThat(res.getRefreshToken()).isEqualTo("refresh-nuevo");
+        assertThat(res.getExpiresIn()).isEqualTo(900L);
         assertThat(res.getUsuario().getEmail()).isEqualTo("nuevo@test.com");
+    }
+
+    @Test
+    void refrescar_rotaYDevuelveNuevoPar() {
+        Usuario u = usuario(true);
+        when(refreshTokenService.validarYRotar("rt-viejo")).thenReturn(
+                RefreshToken.builder().token("rt-rotado").usuario(u).build());
+
+        LoginResponseDTO res = authService.refrescar(new RefreshTokenRequestDTO("rt-viejo"));
+
+        assertThat(res.getRefreshToken()).isEqualTo("rt-rotado");
+        assertThat(res.getToken()).isEqualTo("token-jwt");
+    }
+
+    @Test
+    void refrescar_tokenInvalido_propagaBadRequest() {
+        when(refreshTokenService.validarYRotar("malo"))
+                .thenThrow(new BadRequestException("Refresh token invalido"));
+        assertThatThrownBy(() -> authService.refrescar(new RefreshTokenRequestDTO("malo")))
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    void logout_revocaElRefreshToken() {
+        authService.logout(new RefreshTokenRequestDTO("rt-1"));
+        org.mockito.Mockito.verify(refreshTokenService).revocar("rt-1");
+    }
+
+    @Test
+    void cambiarPassword_revocaTodasLasSesiones() {
+        Usuario u = usuario(true);
+        when(usuarioAutenticado.obtenerUsuarioActual()).thenReturn(u);
+        when(passwordEncoder.matches("password123", "hashed")).thenReturn(true);
+        when(passwordEncoder.encode("password456")).thenReturn("hashed2");
+
+        authService.cambiarPassword(new dev.deveps.moteros.dto.CambioPasswordDTO("password123", "password456"));
+
+        org.mockito.Mockito.verify(refreshTokenService).revocarTodos(u.getId());
     }
 
     @Test

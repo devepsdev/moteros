@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.Date;
+import java.util.UUID;
 
 /** Genera y valida los JWT (HMAC-SHA). El subject del token es el identificador del usuario (su email). */
 @Component
@@ -24,9 +25,15 @@ public class JwtUtil {
         this.jwtExpiration = jwtExpiration;
     }
 
+    /** Segundos de validez del access token (para el campo {@code expiresIn} de la respuesta). */
+    public long getExpirationSeconds() {
+        return jwtExpiration / 1000;
+    }
+
     public String generateToken(String subject, String rol) {
         Date now = new Date();
         return Jwts.builder()
+                .setId(UUID.randomUUID().toString())
                 .setSubject(subject)
                 .claim("rol", rol)
                 .setIssuedAt(now)

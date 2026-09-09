@@ -4,6 +4,7 @@ import dev.deveps.moteros.dto.ApiResponseDTO;
 import dev.deveps.moteros.dto.CambioPasswordDTO;
 import dev.deveps.moteros.dto.LoginRequestDTO;
 import dev.deveps.moteros.dto.LoginResponseDTO;
+import dev.deveps.moteros.dto.RefreshTokenRequestDTO;
 import dev.deveps.moteros.dto.RegistroUsuarioDTO;
 import dev.deveps.moteros.services.AuthService;
 import jakarta.validation.Valid;
@@ -36,6 +37,25 @@ public class AuthController {
             @Valid @RequestBody LoginRequestDTO dto) {
         LoginResponseDTO res = authService.login(dto);
         return ResponseEntity.ok(ApiResponseDTO.success(res, "Sesion iniciada correctamente"));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponseDTO<LoginResponseDTO>> refrescar(
+            @Valid @RequestBody RefreshTokenRequestDTO dto) {
+        return ResponseEntity.ok(ApiResponseDTO.success(
+                authService.refrescar(dto), "Sesion renovada correctamente"));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponseDTO<Void>> logout(@Valid @RequestBody RefreshTokenRequestDTO dto) {
+        authService.logout(dto);
+        return ResponseEntity.ok(ApiResponseDTO.success(null, "Sesion cerrada correctamente"));
+    }
+
+    @PostMapping("/logout-all")
+    public ResponseEntity<ApiResponseDTO<Void>> logoutTodos() {
+        authService.logoutTodos();
+        return ResponseEntity.ok(ApiResponseDTO.success(null, "Todas las sesiones cerradas correctamente"));
     }
 
     @PatchMapping("/password")

@@ -31,6 +31,19 @@ CREATE TABLE usuarios (
 ) ENGINE=InnoDB;
 
 -- ============================================================
+-- TABLA: refresh_tokens (renovacion de sesion sin re-login)
+-- ============================================================
+CREATE TABLE refresh_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    token VARCHAR(128) NOT NULL UNIQUE,
+    usuario_id INT NOT NULL,
+    expira_en DATETIME NOT NULL,
+    revocado BOOLEAN NOT NULL DEFAULT FALSE,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ============================================================
 -- TABLA: motos (motos que posee cada usuario)
 -- ============================================================
 CREATE TABLE motos (
@@ -256,6 +269,7 @@ CREATE INDEX idx_rutas_geo_inicio ON rutas(latitud_inicio, longitud_inicio);
 CREATE INDEX idx_quedadas_geo ON quedadas(latitud_encuentro, longitud_encuentro);
 CREATE INDEX idx_mensajes_conversacion ON mensajes(conversacion_id, fecha_envio);
 CREATE INDEX idx_notificaciones_usuario ON notificaciones(usuario_id, leido, fecha_creacion);
+CREATE INDEX idx_refresh_tokens_usuario ON refresh_tokens(usuario_id);
 
 -- ============================================================
 -- FIN DEL SCRIPT
