@@ -47,6 +47,18 @@ public interface AmistadRepository extends JpaRepository<Amistad, Integer> {
             """)
     Page<Usuario> findAmigosAceptados(@Param("usuarioId") Integer usuarioId, Pageable pageable);
 
+    /** Misma consulta sin paginar, para fan-out de notificaciones. */
+    @Query("""
+            SELECT u FROM Usuario u WHERE
+            u.id IN (SELECT a.amigo.id FROM Amistad a
+                     WHERE a.usuario.id = :usuarioId
+                       AND a.estado = dev.deveps.moteros.entities.enums.EstadoAmistad.aceptada)
+            OR u.id IN (SELECT a.usuario.id FROM Amistad a
+                        WHERE a.amigo.id = :usuarioId
+                          AND a.estado = dev.deveps.moteros.entities.enums.EstadoAmistad.aceptada)
+            """)
+    java.util.List<Usuario> findAmigosAceptadosLista(@Param("usuarioId") Integer usuarioId);
+
     @Query("""
             SELECT COUNT(a) FROM Amistad a
             WHERE a.estado = dev.deveps.moteros.entities.enums.EstadoAmistad.aceptada

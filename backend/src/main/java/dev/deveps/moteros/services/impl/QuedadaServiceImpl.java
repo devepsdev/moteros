@@ -12,14 +12,17 @@ import dev.deveps.moteros.entities.Usuario;
 import dev.deveps.moteros.entities.enums.EstadoInscripcion;
 import dev.deveps.moteros.entities.enums.EstadoQuedada;
 import dev.deveps.moteros.entities.enums.NivelRecomendado;
+import dev.deveps.moteros.entities.enums.TipoNotificacion;
 import dev.deveps.moteros.exceptions.BadRequestException;
 import dev.deveps.moteros.exceptions.ResourceNotFoundException;
 import dev.deveps.moteros.mapper.EntityDtoMapper;
+import dev.deveps.moteros.repositories.AmistadRepository;
 import dev.deveps.moteros.repositories.InscripcionQuedadaRepository;
 import dev.deveps.moteros.repositories.QuedadaRepository;
 import dev.deveps.moteros.repositories.RutaRepository;
 import dev.deveps.moteros.repositories.ValoracionRutaRepository;
 import dev.deveps.moteros.security.UsuarioAutenticadoProvider;
+import dev.deveps.moteros.services.NotificacionService;
 import dev.deveps.moteros.services.QuedadaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,7 +43,9 @@ public class QuedadaServiceImpl implements QuedadaService {
     private final InscripcionQuedadaRepository inscripcionRepository;
     private final RutaRepository rutaRepository;
     private final ValoracionRutaRepository valoracionRutaRepository;
+    private final AmistadRepository amistadRepository;
     private final UsuarioAutenticadoProvider usuarioAutenticado;
+    private final NotificacionService notificacionService;
     private final EntityDtoMapper mapper;
 
     // ===================== CONSULTAS =====================
@@ -114,7 +119,15 @@ public class QuedadaServiceImpl implements QuedadaService {
                 .nivelRecomendado(dto.getNivelRecomendado() != null ? dto.getNivelRecomendado() : NivelRecomendado.cualquiera)
                 .estado(EstadoQuedada.programada)
                 .build();
-        return detalle(quedadaRepository.save(quedada));
+        Quedada guardada = quedadaRepository.save(quedada);
+
+        // Avisar a los amigos del organizador de la nueva quedada.
+        amistadRepository.findAmigosAceptadosLista(organizador.getId()).forEach(amigo ->
+                notificacionService.notificar(amigo, TipoNotificacion.nueva_quedada, guardada.getId(),
+                        organizador, organizador.getNombreCompleto()
+                                + " ha organizado una nueva quedada: \"" + guardada.getTitulo() + "\"."));
+
+        return detalle(guardada);
     }
 
     @Override
@@ -142,8 +155,17 @@ public class QuedadaServiceImpl implements QuedadaService {
     public QuedadaResponseDTO cambiarEstado(String uuid, EstadoQuedada estado) {
         Quedada quedada = buscar(uuid);
         exigirOrganizador(quedada);
+        boolean seCancela = estado == EstadoQuedada.cancelada && quedada.getEstado() != EstadoQuedada.cancelada;
         quedada.setEstado(estado);
-        return detalle(quedadaRepository.save(quedada));
+        Quedada guardada = quedadaRepository.save(quedada);
+
+        if (seCancela) {
+            inscripcionRepository.findByQuedadaId(guardada.getId()).forEach(inscripcion ->
+                    notificacionService.notificar(inscripcion.getUsuario(), TipoNotificacion.quedada_cancelada,
+                            guardada.getId(), guardada.getOrganizador(),
+                            "Se ha cancelado la quedada \"" + guardada.getTitulo() + "\"."));
+        }
+        return detalle(guardada);
     }
 
     @Override
@@ -182,7 +204,13 @@ public class QuedadaServiceImpl implements QuedadaService {
         }
 
         inscripcion.setEstado(EstadoInscripcion.confirmado);
-        return mapper.inscripcionResponse(inscripcionRepository.save(inscripcion));
+        InscripcionQuedada guardada = inscripcionRepository.save(inscripcion);
+
+        notificacionService.notificar(quedada.getOrganizador(), TipoNotificacion.inscripcion_quedada,
+                quedada.getId(), usuario,
+                usuario.getNombreCompleto() + " se ha apuntado a tu quedada \"" + quedada.getTitulo() + "\".");
+
+        return mapper.inscripcionResponse(guardada);
     }
 
     @Override

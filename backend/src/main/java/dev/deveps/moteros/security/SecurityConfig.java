@@ -63,6 +63,8 @@ public class SecurityConfig {
                         // OpenAPI / Swagger UI
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
                                 "/swagger-resources/**", "/webjars/**").permitAll()
+                        // Imagenes subidas: lectura publica (la subida sigue requiriendo token)
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated())

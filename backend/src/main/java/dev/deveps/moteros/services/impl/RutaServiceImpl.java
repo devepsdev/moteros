@@ -13,6 +13,7 @@ import dev.deveps.moteros.entities.Ruta;
 import dev.deveps.moteros.entities.Usuario;
 import dev.deveps.moteros.entities.ValoracionRuta;
 import dev.deveps.moteros.entities.enums.Dificultad;
+import dev.deveps.moteros.entities.enums.TipoNotificacion;
 import dev.deveps.moteros.entities.enums.TipoTerreno;
 import dev.deveps.moteros.exceptions.BadRequestException;
 import dev.deveps.moteros.exceptions.ResourceNotFoundException;
@@ -21,6 +22,7 @@ import dev.deveps.moteros.repositories.PuntoRutaRepository;
 import dev.deveps.moteros.repositories.RutaRepository;
 import dev.deveps.moteros.repositories.ValoracionRutaRepository;
 import dev.deveps.moteros.security.UsuarioAutenticadoProvider;
+import dev.deveps.moteros.services.NotificacionService;
 import dev.deveps.moteros.services.RutaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,6 +42,7 @@ public class RutaServiceImpl implements RutaService {
     private final PuntoRutaRepository puntoRutaRepository;
     private final ValoracionRutaRepository valoracionRutaRepository;
     private final UsuarioAutenticadoProvider usuarioAutenticado;
+    private final NotificacionService notificacionService;
     private final EntityDtoMapper mapper;
 
     // ===================== CONSULTAS =====================
@@ -193,11 +196,19 @@ public class RutaServiceImpl implements RutaService {
         ValoracionRuta valoracion = valoracionRutaRepository
                 .findByRutaIdAndUsuarioId(ruta.getId(), usuario.getId())
                 .orElseGet(() -> ValoracionRuta.builder().ruta(ruta).usuario(usuario).build());
+        boolean esNueva = valoracion.getId() == null;
 
         valoracion.setPuntuacion(dto.getPuntuacion().byteValue());
         valoracion.setComentario(dto.getComentario());
+        ValoracionRuta guardada = valoracionRutaRepository.save(valoracion);
 
-        return mapper.valoracionResponse(valoracionRutaRepository.save(valoracion));
+        if (esNueva) {
+            notificacionService.notificar(ruta.getCreador(), TipoNotificacion.valoracion_ruta,
+                    ruta.getId(), usuario, usuario.getNombreCompleto() + " ha valorado tu ruta \""
+                            + ruta.getNombre() + "\" con " + dto.getPuntuacion() + " estrellas.");
+        }
+
+        return mapper.valoracionResponse(guardada);
     }
 
     @Override
