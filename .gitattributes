@@ -1,0 +1,10 @@
+# Normaliza saltos de línea. Los scripts de shell SIEMPRE con LF
+# (se ejecutan en Linux/VPS; con CRLF fallarían).
+*.sh    text eol=lf
+mvnw    text eol=lf
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.jar   binary
+*.png   binary
+*.jpg   binary
+*.pdf   binary

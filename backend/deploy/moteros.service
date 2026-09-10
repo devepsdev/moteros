@@ -1,33 +1,28 @@
+# /etc/systemd/system/moteros.service
 [Unit]
 Description=moter@s API (Spring Boot)
-Documentation=https://github.com/devepsdev/moteros
-After=network-online.target mysql.service
-Wants=network-online.target
-Requires=mysql.service
+After=network.target mysql.service
+Wants=mysql.service
 
 [Service]
 Type=simple
-User=moteros
-Group=moteros
-WorkingDirectory=/opt/moteros
-EnvironmentFile=/etc/moteros/moteros.env
-ExecStart=/usr/bin/java $JAVA_OPTS -jar /opt/moteros/moteros.jar --spring.profiles.active=prod
-SuccessExitStatus=143
-Restart=on-failure
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/apps/moteros/
+ExecStart=/usr/bin/java -Djava.awt.headless=true -Xms256m -Xmx768m -XX:+UseSerialGC -jar /opt/apps/moteros/moteros.jar --spring.profiles.active=prod --server.port=8080
+Restart=always
 RestartSec=5
-TimeoutStopSec=20
+SuccessExitStatus=143
 
-# --- Endurecimiento ---
-NoNewPrivileges=true
+Environment=JAVA_HOME=/usr/lib/jvm/jdk-25.0.4.1-oracle-x64
+EnvironmentFile=/opt/apps/moteros/.env
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=moteros
+
 PrivateTmp=true
-ProtectSystem=full
-ProtectHome=true
-ProtectControlGroups=true
-ProtectKernelModules=true
-ProtectKernelTunables=true
-RestrictSUIDSGID=true
-LockPersonality=true
-ReadWritePaths=/var/lib/moteros
+NoNewPrivileges=true
 
 [Install]
 WantedBy=multi-user.target
