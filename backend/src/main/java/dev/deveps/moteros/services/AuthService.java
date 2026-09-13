@@ -29,5 +29,5 @@ public interface AuthService {
     void recuperarPassword(RecuperarPasswordDTO dto, String clientIp);
 
     /** Valida el codigo, fija la contrasena nueva y cierra todas las sesiones. */
-    void restablecerPassword(RestablecerPasswordDTO dto);
+    void restablecerPassword(RestablecerPasswordDTO dto, String clientIp);
 }

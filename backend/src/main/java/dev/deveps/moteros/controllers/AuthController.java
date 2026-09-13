@@ -51,8 +51,9 @@ public class AuthController {
     }
 
     @PostMapping("/restablecer-password")
-    public ResponseEntity<ApiResponseDTO<Void>> restablecerPassword(@Valid @RequestBody RestablecerPasswordDTO dto) {
-        authService.restablecerPassword(dto);
+    public ResponseEntity<ApiResponseDTO<Void>> restablecerPassword(
+            @Valid @RequestBody RestablecerPasswordDTO dto, HttpServletRequest httpRequest) {
+        authService.restablecerPassword(dto, httpRequest.getRemoteAddr());
         return ResponseEntity.ok(ApiResponseDTO.success(null, "Contrasena restablecida correctamente"));
     }
 

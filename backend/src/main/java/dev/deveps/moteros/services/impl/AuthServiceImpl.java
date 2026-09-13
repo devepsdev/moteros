@@ -158,11 +158,24 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional(noRollbackFor = BadRequestException.class)
-    public void restablecerPassword(RestablecerPasswordDTO dto) {
-        Usuario usuario = usuarioRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new BadRequestException("El codigo no es valido o ha caducado"));
-        // Si el codigo falla, el contador de intentos debe quedar guardado (noRollbackFor).
-        passwordResetService.verifyCode(usuario.getId(), dto.getCodigo());
+    public void restablecerPassword(RestablecerPasswordDTO dto, String clientIp) {
+        // Limite propio por email e IP: pedir un codigo nuevo reinicia su contador de 5 intentos,
+        // asi que sin esto se podrian encadenar codigos para seguir probando.
+        String claveEmail = "reset-verify:" + dto.getEmail();
+        String claveIp = "reset-verify:" + clientIp;
+        loginRateLimiter.checkAllowed(claveEmail, claveIp);
+
+        Usuario usuario;
+        try {
+            usuario = usuarioRepository.findByEmail(dto.getEmail())
+                    .orElseThrow(() -> new BadRequestException("El codigo no es valido o ha caducado"));
+            // Si el codigo falla, el contador de intentos debe quedar guardado (noRollbackFor).
+            passwordResetService.verifyCode(usuario.getId(), dto.getCodigo());
+        } catch (BadRequestException ex) {
+            loginRateLimiter.recordFailure(claveEmail, claveIp);
+            throw ex;
+        }
+        loginRateLimiter.recordSuccess(claveEmail, claveIp);
 
         usuario.setPasswordHash(passwordEncoder.encode(dto.getPasswordNueva()));
         usuarioRepository.save(usuario);

@@ -60,19 +60,22 @@ public class PasswordResetService {
         PasswordResetToken token = passwordResetTokenRepository.findByUsuarioIdAndUsadoFalse(usuarioId)
                 .orElseThrow(this::invalidCode);
 
-        if (token.getFechaExpiracion().isBefore(LocalDateTime.now()) || token.getIntentos() >= MAX_ATTEMPTS) {
-            passwordResetTokenRepository.delete(token);
+        // Se gasta un intento ANTES de comparar, con un UPDATE condicional atomico: con varias
+        // peticiones en paralelo, MySQL serializa la actualizacion de la fila y ninguna puede
+        // saltarse el maximo (un "leer intentos -> comparar -> guardar" si podia).
+        int consumidos = passwordResetTokenRepository.consumirIntento(token.getId(), MAX_ATTEMPTS, LocalDateTime.now());
+        if (consumidos == 0) {
             throw invalidCode();
         }
 
         if (!HashUtils.sha256(rawCode).equals(token.getCodeHash())) {
-            token.setIntentos(token.getIntentos() + 1);
-            passwordResetTokenRepository.save(token);
             throw invalidCode();
         }
 
-        token.setUsado(true);
-        passwordResetTokenRepository.save(token);
+        // Tambien atomico: si dos peticiones con el codigo correcto llegan a la vez, solo una lo usa.
+        if (passwordResetTokenRepository.marcarUsado(token.getId()) == 0) {
+            throw invalidCode();
+        }
     }
 
     @Scheduled(fixedRate = 24 * 60 * 60 * 1000)

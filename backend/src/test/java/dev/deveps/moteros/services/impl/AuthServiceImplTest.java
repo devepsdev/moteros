@@ -214,7 +214,7 @@ class AuthServiceImplTest {
         when(passwordEncoder.encode("nueva12345")).thenReturn("hash-nuevo");
 
         authService.restablecerPassword(new dev.deveps.moteros.dto.RestablecerPasswordDTO(
-                "nuevo@test.com", "123456", "nueva12345"));
+                "nuevo@test.com", "123456", "nueva12345"), "1.2.3.4");
 
         org.mockito.Mockito.verify(passwordResetService).verifyCode(1, "123456");
         assertThat(u.getPasswordHash()).isEqualTo("hash-nuevo");
@@ -229,7 +229,7 @@ class AuthServiceImplTest {
                 .when(passwordResetService).verifyCode(1, "000000");
 
         assertThatThrownBy(() -> authService.restablecerPassword(new dev.deveps.moteros.dto.RestablecerPasswordDTO(
-                "nuevo@test.com", "000000", "nueva12345"))).isInstanceOf(BadRequestException.class);
+                "nuevo@test.com", "000000", "nueva12345"), "1.2.3.4")).isInstanceOf(BadRequestException.class);
 
         assertThat(u.getPasswordHash()).isEqualTo("hashed");
         org.mockito.Mockito.verify(refreshTokenService, org.mockito.Mockito.never()).revocarTodos(any());
