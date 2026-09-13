@@ -18,8 +18,18 @@ public interface ConversacionRepository extends JpaRepository<Conversacion, Inte
     /** El par se guarda siempre con usuario1Id &lt; usuario2Id (restriccion de la BBDD). */
     Optional<Conversacion> findByUsuario1IdAndUsuario2Id(Integer usuario1Id, Integer usuario2Id);
 
-    @Query("""
+    /**
+     * Conversaciones de un usuario, la de actividad mas reciente primero (ultimo mensaje o,
+     * si no tiene, fecha de creacion). El orden va en la query: el Pageable ha de llegar sin sort.
+     */
+    @Query(value = """
             SELECT c FROM Conversacion c
+            WHERE c.usuario1.id = :usuarioId OR c.usuario2.id = :usuarioId
+            ORDER BY COALESCE((SELECT MAX(m.fechaEnvio) FROM Mensaje m WHERE m.conversacion = c),
+                              c.fechaCreacion) DESC
+            """,
+            countQuery = """
+            SELECT COUNT(c) FROM Conversacion c
             WHERE c.usuario1.id = :usuarioId OR c.usuario2.id = :usuarioId
             """)
     Page<Conversacion> findByParticipante(@Param("usuarioId") Integer usuarioId, Pageable pageable);

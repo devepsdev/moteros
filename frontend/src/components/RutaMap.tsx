@@ -30,9 +30,11 @@ interface RutaMapProps {
   mostrarUbicacion?: boolean;
   /** Centra el mapa en esta posición cada vez que cambia (p. ej. la ubicación del usuario). */
   centro?: { latitud: number; longitud: number } | null;
+  /** Título del marcador del primer punto (por defecto "Salida"). */
+  etiquetaInicio?: string;
 }
 
-export function RutaMap({ puntos, onAddPunto, style, estatico, mostrarUbicacion, centro }: RutaMapProps) {
+export function RutaMap({ puntos, onAddPunto, style, estatico, mostrarUbicacion, centro, etiquetaInicio = "Salida" }: RutaMapProps) {
   const theme = useTheme();
   const mapRef = useRef<MapView>(null);
   const coords = puntos.map((p) => ({ latitude: p.latitud, longitude: p.longitud }));
@@ -87,7 +89,7 @@ export function RutaMap({ puntos, onAddPunto, style, estatico, mostrarUbicacion,
       showsMyLocationButton={mostrarUbicacion}
     >
       {coords.length > 1 ? <Polyline coordinates={coords} strokeColor={theme.colors.track} strokeWidth={5} /> : null}
-      {coords.length > 0 ? <Marker coordinate={coords[0]} pinColor="green" title="Salida" /> : null}
+      {coords.length > 0 ? <Marker coordinate={coords[0]} pinColor={etiquetaInicio === "Salida" ? "green" : theme.colors.accent} title={etiquetaInicio} /> : null}
       {coords.length > 1 ? <Marker coordinate={coords[coords.length - 1]} pinColor="red" title="Llegada" /> : null}
     </MapView>
   );

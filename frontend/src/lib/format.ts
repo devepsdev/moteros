@@ -1,4 +1,4 @@
-import type { Dificultad, TipoMoto, TipoTerreno } from "@/types/dto";
+import type { Dificultad, NivelRecomendado, TipoMoto, TipoTerreno } from "@/types/dto";
 
 export const DIFICULTADES: { value: Dificultad; label: string }[] = [
   { value: "facil", label: "Fácil" },
@@ -22,6 +22,14 @@ export const TIPOS_MOTO: { value: TipoMoto; label: string }[] = [
   { value: "scooter", label: "Scooter" },
   { value: "clasica", label: "Clásica" },
 ];
+
+export const NIVELES: { value: NivelRecomendado; label: string }[] = [
+  { value: "cualquiera", label: "Cualquier nivel" },
+  { value: "iniciacion", label: "Iniciación" },
+  { value: "experimentado", label: "Experimentado" },
+];
+
+export const etiquetaNivel = (n: NivelRecomendado) => NIVELES.find((x) => x.value === n)?.label ?? n;
 
 export const etiquetaDificultad = (d: Dificultad) => DIFICULTADES.find((x) => x.value === d)?.label ?? d;
 export const etiquetaTerreno = (t: TipoTerreno) => TERRENOS.find((x) => x.value === t)?.label ?? t;
@@ -75,4 +83,34 @@ export function longitudTrack(puntos: { latitud: number; longitud: number }[]): 
   let total = 0;
   for (let i = 1; i < puntos.length; i++) total += distanciaKm(puntos[i - 1], puntos[i]);
   return Math.round(total * 10) / 10;
+}
+
+/**
+ * El backend trabaja con LocalDateTime en hora de España y sin zona ("2026-09-20T09:30:00").
+ * JavaScript interpreta ese formato como hora local, que es la del usuario en España.
+ */
+export function fechaDeApi(iso: string): Date {
+  return new Date(iso);
+}
+
+/** Fecha local a LocalDateTime del backend, sin zona y sin milisegundos. */
+export function fechaParaApi(fecha: Date): string {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${fecha.getFullYear()}-${p(fecha.getMonth() + 1)}-${p(fecha.getDate())}T${p(fecha.getHours())}:${p(fecha.getMinutes())}:00`;
+}
+
+/** "sáb 20 sep" */
+export function formatDia(fecha: Date): string {
+  return fecha.toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" });
+}
+
+/** "09:30" */
+export function formatHora(fecha: Date): string {
+  return fecha.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+}
+
+/** "sáb 20 sep · 09:30" */
+export function formatFechaHora(iso: string): string {
+  const fecha = fechaDeApi(iso);
+  return `${formatDia(fecha)} · ${formatHora(fecha)}`;
 }

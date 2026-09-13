@@ -70,8 +70,8 @@ public class QuedadaController {
     @GetMapping("/mis-inscripciones")
     public ResponseEntity<ApiResponseDTO<PagedResponseDTO<QuedadaSummaryDTO>>> misInscripciones(
             @Valid QuedadaSearchDTO searchDTO) {
-        Pageable pageable = PageableFactory.of(searchDTO.getPage(), searchDTO.getSize(),
-                searchDTO.getSortBy(), searchDTO.getSortDir(), "fechaHora");
+        // Se pagina sobre inscripciones y se ordena por la fecha de la quedada en la query.
+        Pageable pageable = PageableFactory.of(searchDTO.getPage(), searchDTO.getSize());
         return ResponseEntity.ok(ApiResponseDTO.success(
                 PagedResponseDTO.of(quedadaService.misInscripciones(pageable)),
                 "Inscripciones obtenidas correctamente"));

@@ -5,6 +5,8 @@ import dev.deveps.moteros.entities.enums.EstadoInscripcion;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -29,6 +31,20 @@ public interface InscripcionQuedadaRepository extends JpaRepository<InscripcionQ
 
     long countByQuedadaIdAndEstado(Integer quedadaId, EstadoInscripcion estado);
 
-    /** Quedadas a las que se ha apuntado un usuario. */
-    Page<InscripcionQuedada> findByUsuarioUuid(String usuarioUuid, Pageable pageable);
+    /**
+     * Inscripciones no canceladas de un usuario, de la quedada mas tardia a la mas temprana.
+     * El orden va en la query: el Pageable ha de llegar sin sort.
+     */
+    @Query(value = """
+            SELECT i FROM InscripcionQuedada i
+            WHERE i.usuario.uuid = :usuarioUuid
+              AND i.estado <> dev.deveps.moteros.entities.enums.EstadoInscripcion.cancelado
+            ORDER BY i.quedada.fechaHora DESC
+            """,
+            countQuery = """
+            SELECT COUNT(i) FROM InscripcionQuedada i
+            WHERE i.usuario.uuid = :usuarioUuid
+              AND i.estado <> dev.deveps.moteros.entities.enums.EstadoInscripcion.cancelado
+            """)
+    Page<InscripcionQuedada> findActivasByUsuarioUuid(@Param("usuarioUuid") String usuarioUuid, Pageable pageable);
 }

@@ -91,7 +91,7 @@ public class QuedadaServiceImpl implements QuedadaService {
     @Transactional(readOnly = true)
     public Page<QuedadaSummaryDTO> misInscripciones(Pageable pageable) {
         String uuid = usuarioAutenticado.obtenerUuidUsuarioActual();
-        return inscripcionRepository.findByUsuarioUuid(uuid, pageable)
+        return inscripcionRepository.findActivasByUsuarioUuid(uuid, pageable)
                 .map(i -> toSummary(i.getQuedada()));
     }
 

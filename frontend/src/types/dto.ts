@@ -222,3 +222,98 @@ export interface ArchivoSubido {
   tipoContenido: string;
   tamano: number;
 }
+
+// ===================== QUEDADAS =====================
+
+export type EstadoQuedada = "programada" | "cancelada" | "finalizada";
+export type EstadoInscripcion = "confirmado" | "pendiente" | "cancelado";
+export type NivelRecomendado = "cualquiera" | "iniciacion" | "experimentado";
+
+export interface InscripcionQuedada {
+  uuid: string;
+  quedadaUuid: string;
+  usuario: UsuarioSummary;
+  estado: EstadoInscripcion;
+  fechaInscripcion: string;
+}
+
+export interface QuedadaSummary {
+  uuid: string;
+  titulo: string;
+  organizador: UsuarioSummary;
+  rutaUuid: string | null;
+  rutaNombre: string | null;
+  puntoEncuentro: string;
+  fechaHora: string;
+  maxParticipantes: number | null;
+  numInscritos: number | null;
+  nivelRecomendado: NivelRecomendado;
+  estado: EstadoQuedada;
+}
+
+export interface QuedadaResponse {
+  uuid: string;
+  organizador: UsuarioSummary;
+  ruta: RutaSummary | null;
+  titulo: string;
+  descripcion: string | null;
+  puntoEncuentro: string;
+  latitudEncuentro: number | null;
+  longitudEncuentro: number | null;
+  fechaHora: string;
+  maxParticipantes: number | null;
+  nivelRecomendado: NivelRecomendado;
+  estado: EstadoQuedada;
+  fechaCreacion: string;
+  numInscritos: number | null;
+  plazasLibres: number | null;
+  inscripcionUsuarioActual: EstadoInscripcion | null;
+  inscritos: InscripcionQuedada[] | null;
+}
+
+export interface QuedadaRequest {
+  rutaUuid?: string | null;
+  titulo: string;
+  descripcion?: string | null;
+  puntoEncuentro: string;
+  latitudEncuentro?: number | null;
+  longitudEncuentro?: number | null;
+  /** LocalDateTime sin zona, en hora de España: "2026-09-20T09:30:00". */
+  fechaHora: string;
+  maxParticipantes?: number | null;
+  nivelRecomendado?: NivelRecomendado;
+}
+
+// ===================== AMISTADES =====================
+
+export type EstadoAmistad = "pendiente" | "aceptada" | "rechazada";
+
+export interface Amistad {
+  uuid: string;
+  solicitante: UsuarioSummary;
+  destinatario: UsuarioSummary;
+  estado: EstadoAmistad;
+  fecha: string;
+  /** true si la solicitud la envió el usuario que consulta. */
+  enviadaPorMi: boolean | null;
+}
+
+// ===================== CHAT =====================
+
+export interface Mensaje {
+  uuid: string;
+  conversacionUuid: string;
+  remitente: UsuarioSummary;
+  contenido: string;
+  leido: boolean | null;
+  fechaEnvio: string;
+  propio: boolean | null;
+}
+
+export interface Conversacion {
+  uuid: string;
+  interlocutor: UsuarioSummary;
+  ultimoMensaje: Mensaje | null;
+  numNoLeidos: number | null;
+  fechaCreacion: string;
+}
