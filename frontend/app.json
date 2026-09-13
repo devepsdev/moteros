@@ -1,18 +1,21 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "moter@s",
+    "slug": "moteros",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
+    "scheme": "moteros",
     "userInterfaceStyle": "automatic",
+    "backgroundColor": "#0E0F11",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "dev.deveps.moteros"
     },
     "android": {
+      "package": "dev.deveps.moteros",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0E0F11",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -28,12 +31,27 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#0E0F11",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "moter@s necesita acceder a tus fotos para tu perfil, tus motos y tus publicaciones.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "moter@s usa tu ubicación para centrar el mapa al trazar una ruta."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
