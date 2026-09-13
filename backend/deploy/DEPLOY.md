@@ -100,6 +100,9 @@ cd backend && SSH_HOST=vps bash deploy/deploy.sh   # build + scp jar + systemctl
 ## Notas
 
 - **8080** escucha solo en `127.0.0.1` (`server.address=127.0.0.1` en `application-prod.properties`). No se abre nada en UFW.
+- **Correo (recuperación de contraseña)**: añadir a `/opt/apps/moteros/.env` `MAIL_USERNAME` y `MAIL_PASSWORD`
+  (contraseña de aplicación de Gmail) y `sudo systemctl restart moteros`. Sin ellas la app arranca, pero los
+  códigos no se envían (queda `Authentication failed` en el log). `setup-vps.sh` conserva estas líneas al re-ejecutarse.
 - **Swagger deshabilitado en `prod`** (`springdoc.*.enabled=false`). Para inspeccionar la API en el VPS, túnel SSH al 8080 con el perfil `dev`, o mirar en local. Healthcheck público: `GET /health`.
 - **`ddl-auto=validate`**: sin migraciones automáticas. Cambios de entidad → actualizar `db/moteros.sql` y aplicar el diff a mano.
 - **Zona horaria**: la URL JDBC fija `serverTimezone=Europe/Madrid`.

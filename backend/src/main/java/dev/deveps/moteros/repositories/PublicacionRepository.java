@@ -15,6 +15,10 @@ public interface PublicacionRepository extends JpaRepository<Publicacion, Intege
 
     Optional<Publicacion> findByUuid(String uuid);
 
+    /** URLs de las imagenes de las publicaciones de un usuario (para borrarlas al eliminar la cuenta). */
+    @Query("SELECT p.imagenUrl FROM Publicacion p WHERE p.usuario.id = :usuarioId AND p.imagenUrl IS NOT NULL")
+    java.util.List<String> imagenesDeUsuario(@Param("usuarioId") Integer usuarioId);
+
     Page<Publicacion> findByUsuarioUuidOrderByFechaPublicacionDesc(String usuarioUuid, Pageable pageable);
 
     long countByUsuarioId(Integer usuarioId);

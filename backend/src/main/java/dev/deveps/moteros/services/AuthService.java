@@ -3,7 +3,9 @@ package dev.deveps.moteros.services;
 import dev.deveps.moteros.dto.CambioPasswordDTO;
 import dev.deveps.moteros.dto.LoginRequestDTO;
 import dev.deveps.moteros.dto.LoginResponseDTO;
+import dev.deveps.moteros.dto.RecuperarPasswordDTO;
 import dev.deveps.moteros.dto.RefreshTokenRequestDTO;
+import dev.deveps.moteros.dto.RestablecerPasswordDTO;
 import dev.deveps.moteros.dto.RegistroUsuarioDTO;
 
 public interface AuthService {
@@ -22,4 +24,10 @@ public interface AuthService {
     void logoutTodos();
 
     void cambiarPassword(CambioPasswordDTO dto);
+
+    /** Envia un codigo de recuperacion al email si existe la cuenta. Responde igual exista o no. */
+    void recuperarPassword(RecuperarPasswordDTO dto, String clientIp);
+
+    /** Valida el codigo, fija la contrasena nueva y cierra todas las sesiones. */
+    void restablecerPassword(RestablecerPasswordDTO dto);
 }

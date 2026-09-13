@@ -38,6 +38,31 @@ class AlmacenamientoServiceImplTest {
     }
 
     @Test
+    void eliminarPorUrl_borraElArchivoSubido() {
+        ArchivoSubidoDTO res = servicio.guardarImagen(
+                new MockMultipartFile("file", "f.png", "image/png", new byte[]{1, 2}));
+        assertThat(Files.exists(tempDir.resolve(res.getNombreArchivo()))).isTrue();
+
+        servicio.eliminarPorUrl(res.getUrl());
+
+        assertThat(Files.exists(tempDir.resolve(res.getNombreArchivo()))).isFalse();
+    }
+
+    @Test
+    void eliminarPorUrl_ignoraUrlsExternasTraversalYNulos() throws Exception {
+        Path fuera = Files.createTempFile("fuera", ".png");
+        try {
+            servicio.eliminarPorUrl(null);
+            servicio.eliminarPorUrl("https://otra-web.com/foto.png");
+            servicio.eliminarPorUrl("/uploads/../" + fuera.getFileName());
+            servicio.eliminarPorUrl("/uploads/no-existe.png");
+            assertThat(Files.exists(fuera)).isTrue();
+        } finally {
+            Files.deleteIfExists(fuera);
+        }
+    }
+
+    @Test
     void guardarImagen_formatoNoImagen_lanzaBadRequest() {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "doc.pdf", "application/pdf", new byte[]{1, 2, 3});

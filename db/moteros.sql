@@ -44,6 +44,21 @@ CREATE TABLE refresh_tokens (
 ) ENGINE=InnoDB;
 
 -- ============================================================
+-- TABLA: password_reset_tokens (codigos de 6 digitos para recuperar
+-- la contrasena; se guarda solo el hash SHA-256 del codigo)
+-- ============================================================
+CREATE TABLE password_reset_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    code_hash CHAR(64) NOT NULL,
+    fecha_expiracion DATETIME NOT NULL,
+    usado BOOLEAN NOT NULL DEFAULT FALSE,
+    intentos INT NOT NULL DEFAULT 0,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ============================================================
 -- TABLA: motos (motos que posee cada usuario)
 -- ============================================================
 CREATE TABLE motos (

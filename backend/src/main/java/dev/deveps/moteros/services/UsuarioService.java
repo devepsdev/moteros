@@ -19,4 +19,12 @@ public interface UsuarioService {
 
     /** Actualiza el perfil del usuario autenticado. */
     UsuarioResponseDTO actualizarPerfil(UsuarioRequestDTO dto);
+
+    /**
+     * Elimina la cuenta del usuario autenticado y todos sus datos (requisito de Google Play).
+     * La BBDD borra en cascada motos, rutas, quedadas, publicaciones, comentarios, likes,
+     * amistades, conversaciones, mensajes, notificaciones y tokens; aqui se borran ademas
+     * las imagenes subidas del disco.
+     */
+    void eliminarCuentaActual();
 }

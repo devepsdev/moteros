@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -48,6 +49,12 @@ public class UsuarioController {
             @Valid @RequestBody UsuarioRequestDTO dto) {
         return ResponseEntity.ok(ApiResponseDTO.success(
                 usuarioService.actualizarPerfil(dto), "Perfil actualizado correctamente"));
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<ApiResponseDTO<Void>> eliminarMiCuenta() {
+        usuarioService.eliminarCuentaActual();
+        return ResponseEntity.ok(ApiResponseDTO.success(null, "Cuenta eliminada correctamente"));
     }
 
     @GetMapping("/{uuid}")

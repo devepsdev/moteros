@@ -3,6 +3,7 @@ package dev.deveps.moteros.services.impl;
 import dev.deveps.moteros.dto.ArchivoSubidoDTO;
 import dev.deveps.moteros.exceptions.BadRequestException;
 import dev.deveps.moteros.services.AlmacenamientoService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,7 +16,29 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class AlmacenamientoServiceImpl implements AlmacenamientoService {
+
+    @Override
+    public void eliminarPorUrl(String url) {
+        String prefijo = publicPath + "/";
+        if (url == null || !url.startsWith(prefijo)) {
+            return;
+        }
+        String nombre = url.substring(prefijo.length());
+        if (nombre.isBlank() || nombre.contains("/") || nombre.contains("\\")) {
+            return;
+        }
+        Path archivo = directorio.resolve(nombre).normalize();
+        if (!archivo.startsWith(directorio)) {
+            return;
+        }
+        try {
+            Files.deleteIfExists(archivo);
+        } catch (IOException e) {
+            log.warn("No se pudo borrar la imagen {}: {}", archivo, e.getMessage());
+        }
+    }
 
     private static final Map<String, String> EXTENSIONES = Map.of(
             "image/jpeg", ".jpg",

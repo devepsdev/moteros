@@ -44,13 +44,15 @@ class AuthServiceImplTest {
     @Mock private RefreshTokenService refreshTokenService;
     @Mock private UsuarioAutenticadoProvider usuarioAutenticado;
     @Mock private dev.deveps.moteros.security.LoginRateLimiter loginRateLimiter;
+    @Mock private dev.deveps.moteros.security.PasswordResetService passwordResetService;
+    @Mock private dev.deveps.moteros.services.EmailService emailService;
 
     private AuthServiceImpl authService;
 
     @BeforeEach
     void setUp() {
         authService = new AuthServiceImpl(usuarioRepository, motoRepository, rutaRepository,
-                amistadRepository, passwordEncoder, jwtUtil, refreshTokenService, usuarioAutenticado, loginRateLimiter,
+                amistadRepository, passwordEncoder, jwtUtil, refreshTokenService, usuarioAutenticado, loginRateLimiter, passwordResetService, emailService,
                 new EntityDtoMapper());
         lenient().when(motoRepository.countByUsuarioId(anyInt())).thenReturn(0L);
         lenient().when(rutaRepository.countByCreadorId(anyInt())).thenReturn(0L);
@@ -172,6 +174,65 @@ class AuthServiceImplTest {
                 .isInstanceOf(dev.deveps.moteros.exceptions.TooManyRequestsException.class);
 
         org.mockito.Mockito.verifyNoInteractions(usuarioRepository, passwordEncoder);
+    }
+
+    @Test
+    void recuperarPassword_emailExistente_generaCodigoYEnviaEmail() {
+        when(usuarioRepository.findByEmail("nuevo@test.com")).thenReturn(Optional.of(usuario(true)));
+        when(passwordResetService.createResetCode(1)).thenReturn("123456");
+
+        authService.recuperarPassword(new dev.deveps.moteros.dto.RecuperarPasswordDTO("nuevo@test.com"), "1.2.3.4");
+
+        org.mockito.Mockito.verify(emailService).enviarCodigoRecuperacion("nuevo@test.com", "Nuevo Motero", "123456");
+        org.mockito.Mockito.verify(loginRateLimiter).checkAllowed("reset:nuevo@test.com", "reset:1.2.3.4");
+    }
+
+    @Test
+    void recuperarPassword_emailInexistente_noEnviaNadaNiFalla() {
+        when(usuarioRepository.findByEmail("nadie@test.com")).thenReturn(Optional.empty());
+
+        authService.recuperarPassword(new dev.deveps.moteros.dto.RecuperarPasswordDTO("nadie@test.com"), "1.2.3.4");
+
+        org.mockito.Mockito.verifyNoInteractions(emailService, passwordResetService);
+    }
+
+    @Test
+    void recuperarPassword_siFallaElEmail_respondeIgual() {
+        when(usuarioRepository.findByEmail("nuevo@test.com")).thenReturn(Optional.of(usuario(true)));
+        when(passwordResetService.createResetCode(1)).thenReturn("123456");
+        org.mockito.Mockito.doThrow(new IllegalStateException("smtp caido"))
+                .when(emailService).enviarCodigoRecuperacion(any(), any(), any());
+
+        org.assertj.core.api.Assertions.assertThatNoException().isThrownBy(() -> authService.recuperarPassword(
+                new dev.deveps.moteros.dto.RecuperarPasswordDTO("nuevo@test.com"), "1.2.3.4"));
+    }
+
+    @Test
+    void restablecerPassword_ok_cambiaPasswordYCierraSesiones() {
+        Usuario u = usuario(true);
+        when(usuarioRepository.findByEmail("nuevo@test.com")).thenReturn(Optional.of(u));
+        when(passwordEncoder.encode("nueva12345")).thenReturn("hash-nuevo");
+
+        authService.restablecerPassword(new dev.deveps.moteros.dto.RestablecerPasswordDTO(
+                "nuevo@test.com", "123456", "nueva12345"));
+
+        org.mockito.Mockito.verify(passwordResetService).verifyCode(1, "123456");
+        assertThat(u.getPasswordHash()).isEqualTo("hash-nuevo");
+        org.mockito.Mockito.verify(refreshTokenService).revocarTodos(1);
+    }
+
+    @Test
+    void restablecerPassword_codigoInvalido_noCambiaNada() {
+        Usuario u = usuario(true);
+        when(usuarioRepository.findByEmail("nuevo@test.com")).thenReturn(Optional.of(u));
+        org.mockito.Mockito.doThrow(new BadRequestException("El codigo no es valido o ha caducado"))
+                .when(passwordResetService).verifyCode(1, "000000");
+
+        assertThatThrownBy(() -> authService.restablecerPassword(new dev.deveps.moteros.dto.RestablecerPasswordDTO(
+                "nuevo@test.com", "000000", "nueva12345"))).isInstanceOf(BadRequestException.class);
+
+        assertThat(u.getPasswordHash()).isEqualTo("hashed");
+        org.mockito.Mockito.verify(refreshTokenService, org.mockito.Mockito.never()).revocarTodos(any());
     }
 
     @Test

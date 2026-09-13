@@ -19,6 +19,10 @@ public interface MotoRepository extends JpaRepository<Moto, Integer> {
 
     long countByUsuarioUuid(String usuarioUuid);
 
+    /** URLs de las fotos de las motos de un usuario (para borrarlas del disco al eliminar la cuenta). */
+    @Query("SELECT m.fotoUrl FROM Moto m WHERE m.usuario.id = :usuarioId AND m.fotoUrl IS NOT NULL")
+    List<String> fotosDeUsuario(@org.springframework.data.repository.query.Param("usuarioId") Integer usuarioId);
+
     /** [TipoMoto, Long] con el numero de motos de cada tipo. */
     @Query("SELECT m.tipo, COUNT(m) FROM Moto m GROUP BY m.tipo")
     List<Object[]> contarPorTipo();

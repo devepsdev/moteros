@@ -3,8 +3,10 @@ package dev.deveps.moteros.services.impl;
 import dev.deveps.moteros.dto.CambioPasswordDTO;
 import dev.deveps.moteros.dto.LoginRequestDTO;
 import dev.deveps.moteros.dto.LoginResponseDTO;
+import dev.deveps.moteros.dto.RecuperarPasswordDTO;
 import dev.deveps.moteros.dto.RefreshTokenRequestDTO;
 import dev.deveps.moteros.dto.RegistroUsuarioDTO;
+import dev.deveps.moteros.dto.RestablecerPasswordDTO;
 import dev.deveps.moteros.entities.RefreshToken;
 import dev.deveps.moteros.entities.Usuario;
 import dev.deveps.moteros.entities.enums.RolUsuario;
@@ -17,15 +19,19 @@ import dev.deveps.moteros.repositories.RutaRepository;
 import dev.deveps.moteros.repositories.UsuarioRepository;
 import dev.deveps.moteros.security.JwtUtil;
 import dev.deveps.moteros.security.LoginRateLimiter;
+import dev.deveps.moteros.security.PasswordResetService;
 import dev.deveps.moteros.security.UsuarioAutenticadoProvider;
 import dev.deveps.moteros.services.AuthService;
+import dev.deveps.moteros.services.EmailService;
 import dev.deveps.moteros.services.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Transactional
 public class AuthServiceImpl implements AuthService {
@@ -39,6 +45,8 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenService refreshTokenService;
     private final UsuarioAutenticadoProvider usuarioAutenticado;
     private final LoginRateLimiter loginRateLimiter;
+    private final PasswordResetService passwordResetService;
+    private final EmailService emailService;
     private final EntityDtoMapper mapper;
 
     @Override
@@ -122,6 +130,43 @@ public class AuthServiceImpl implements AuthService {
         usuario.setPasswordHash(passwordEncoder.encode(dto.getPasswordNueva()));
         usuarioRepository.save(usuario);
         // Al cambiar la contrasena se cierran todas las sesiones.
+        refreshTokenService.revocarTodos(usuario.getId());
+    }
+
+    @Override
+    public void recuperarPassword(RecuperarPasswordDTO dto, String clientIp) {
+        // Mismo limitador que el login con prefijo propio: no comparte contador con los
+        // intentos de login reales, pero si el "maximo N por email/IP en una ventana".
+        String email = dto.getEmail();
+        loginRateLimiter.checkAllowed("reset:" + email, "reset:" + clientIp);
+        loginRateLimiter.recordFailure("reset:" + email, "reset:" + clientIp);
+
+        // Siempre se responde igual, exista o no el email: si no, el endpoint serviria
+        // para averiguar que emails estan registrados.
+        usuarioRepository.findByEmail(email)
+                .filter(u -> !Boolean.FALSE.equals(u.getActivo()))
+                .ifPresent(usuario -> {
+                    String codigo = passwordResetService.createResetCode(usuario.getId());
+                    try {
+                        emailService.enviarCodigoRecuperacion(usuario.getEmail(), usuario.getNombreCompleto(), codigo);
+                    } catch (Exception ex) {
+                        log.error("No se ha podido enviar el codigo de recuperacion a {}: {}",
+                                usuario.getEmail(), ex.getMessage());
+                    }
+                });
+    }
+
+    @Override
+    @Transactional(noRollbackFor = BadRequestException.class)
+    public void restablecerPassword(RestablecerPasswordDTO dto) {
+        Usuario usuario = usuarioRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() -> new BadRequestException("El codigo no es valido o ha caducado"));
+        // Si el codigo falla, el contador de intentos debe quedar guardado (noRollbackFor).
+        passwordResetService.verifyCode(usuario.getId(), dto.getCodigo());
+
+        usuario.setPasswordHash(passwordEncoder.encode(dto.getPasswordNueva()));
+        usuarioRepository.save(usuario);
+        // Tras restablecer se cierran todas las sesiones abiertas.
         refreshTokenService.revocarTodos(usuario.getId());
     }
 

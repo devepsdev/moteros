@@ -70,6 +70,11 @@ if [[ -f "$ENV_FILE" ]] && grep -q '^JWT_SECRET=' "$ENV_FILE"; then
 else
   JWT_SECRET=$(openssl rand -base64 64 | tr -d '\n')
 fi
+# Conserva la configuracion de correo si ya estaba (MAIL_USERNAME / MAIL_PASSWORD las pone el usuario).
+MAIL_LINES=""
+if [[ -f "$ENV_FILE" ]]; then
+  MAIL_LINES=$(grep -E '^MAIL_(USERNAME|PASSWORD)=' "$ENV_FILE" || true)
+fi
 umask 077
 cat > "$ENV_FILE" <<ENV
 DB_URL=jdbc:mysql://localhost:3306/moteros?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Madrid
@@ -81,6 +86,11 @@ JWT_REFRESH_EXPIRATION=2592000000
 CORS_ALLOWED_ORIGINS=https://${DOMAIN}
 UPLOADS_DIR=${UPLOADS_DIR}
 ENV
+if [[ -n "$MAIL_LINES" ]]; then
+  echo "$MAIL_LINES" >> "$ENV_FILE"
+else
+  echo "    AVISO: falta MAIL_PASSWORD en $ENV_FILE (sin ella no se envian los codigos de recuperacion)."
+fi
 chown "$SVC_USER":"$SVC_USER" "$ENV_FILE"
 chmod 600 "$ENV_FILE"
 

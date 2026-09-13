@@ -64,6 +64,24 @@ class AuthControllerTest {
     }
 
     @Test
+    void recuperarPassword_devuelve200ConMensajeGenerico() throws Exception {
+        mockMvc.perform(post("/api/auth/recuperar-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"cualquiera@test.com\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    void restablecerPassword_codigoMalFormado_devuelve400() throws Exception {
+        mockMvc.perform(post("/api/auth/restablecer-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"a@test.com\",\"codigo\":\"12ab\",\"passwordNueva\":\"nueva12345\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data.codigo").exists());
+    }
+
+    @Test
     void registro_devuelve201() throws Exception {
         when(authService.registro(any())).thenReturn(LoginResponseDTO.builder().token("t").build());
 

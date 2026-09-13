@@ -4,8 +4,10 @@ import dev.deveps.moteros.dto.ApiResponseDTO;
 import dev.deveps.moteros.dto.CambioPasswordDTO;
 import dev.deveps.moteros.dto.LoginRequestDTO;
 import dev.deveps.moteros.dto.LoginResponseDTO;
+import dev.deveps.moteros.dto.RecuperarPasswordDTO;
 import dev.deveps.moteros.dto.RefreshTokenRequestDTO;
 import dev.deveps.moteros.dto.RegistroUsuarioDTO;
+import dev.deveps.moteros.dto.RestablecerPasswordDTO;
 import dev.deveps.moteros.services.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -38,6 +40,20 @@ public class AuthController {
             @Valid @RequestBody LoginRequestDTO dto, HttpServletRequest httpRequest) {
         LoginResponseDTO res = authService.login(dto, httpRequest.getRemoteAddr());
         return ResponseEntity.ok(ApiResponseDTO.success(res, "Sesion iniciada correctamente"));
+    }
+
+    @PostMapping("/recuperar-password")
+    public ResponseEntity<ApiResponseDTO<Void>> recuperarPassword(
+            @Valid @RequestBody RecuperarPasswordDTO dto, HttpServletRequest httpRequest) {
+        authService.recuperarPassword(dto, httpRequest.getRemoteAddr());
+        return ResponseEntity.ok(ApiResponseDTO.success(null,
+                "Si el email esta registrado, recibiras un codigo para restablecer la contrasena"));
+    }
+
+    @PostMapping("/restablecer-password")
+    public ResponseEntity<ApiResponseDTO<Void>> restablecerPassword(@Valid @RequestBody RestablecerPasswordDTO dto) {
+        authService.restablecerPassword(dto);
+        return ResponseEntity.ok(ApiResponseDTO.success(null, "Contrasena restablecida correctamente"));
     }
 
     @PostMapping("/refresh")
