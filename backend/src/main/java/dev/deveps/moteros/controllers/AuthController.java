@@ -7,6 +7,7 @@ import dev.deveps.moteros.dto.LoginResponseDTO;
 import dev.deveps.moteros.dto.RefreshTokenRequestDTO;
 import dev.deveps.moteros.dto.RegistroUsuarioDTO;
 import dev.deveps.moteros.services.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,8 +35,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponseDTO<LoginResponseDTO>> login(
-            @Valid @RequestBody LoginRequestDTO dto) {
-        LoginResponseDTO res = authService.login(dto);
+            @Valid @RequestBody LoginRequestDTO dto, HttpServletRequest httpRequest) {
+        LoginResponseDTO res = authService.login(dto, httpRequest.getRemoteAddr());
         return ResponseEntity.ok(ApiResponseDTO.success(res, "Sesion iniciada correctamente"));
     }
 

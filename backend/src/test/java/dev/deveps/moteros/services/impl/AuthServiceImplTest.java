@@ -43,13 +43,14 @@ class AuthServiceImplTest {
     @Mock private JwtUtil jwtUtil;
     @Mock private RefreshTokenService refreshTokenService;
     @Mock private UsuarioAutenticadoProvider usuarioAutenticado;
+    @Mock private dev.deveps.moteros.security.LoginRateLimiter loginRateLimiter;
 
     private AuthServiceImpl authService;
 
     @BeforeEach
     void setUp() {
         authService = new AuthServiceImpl(usuarioRepository, motoRepository, rutaRepository,
-                amistadRepository, passwordEncoder, jwtUtil, refreshTokenService, usuarioAutenticado,
+                amistadRepository, passwordEncoder, jwtUtil, refreshTokenService, usuarioAutenticado, loginRateLimiter,
                 new EntityDtoMapper());
         lenient().when(motoRepository.countByUsuarioId(anyInt())).thenReturn(0L);
         lenient().when(rutaRepository.countByCreadorId(anyInt())).thenReturn(0L);
@@ -130,12 +131,47 @@ class AuthServiceImplTest {
         when(usuarioRepository.findByEmailOrNombreUsuario("nuevo", "nuevo")).thenReturn(Optional.of(usuario(true)));
         when(passwordEncoder.matches("password123", "hashed")).thenReturn(true);
 
-        LoginResponseDTO res = authService.login(new LoginRequestDTO("nuevo", "password123"));
+        LoginResponseDTO res = authService.login(new LoginRequestDTO("nuevo", "password123"), "1.2.3.4");
 
         assertThat(res.getToken()).isEqualTo("token-jwt");
         assertThat(res.getRefreshToken()).isEqualTo("refresh-nuevo");
         assertThat(res.getExpiresIn()).isEqualTo(900L);
         assertThat(res.getUsuario().getEmail()).isEqualTo("nuevo@test.com");
+    }
+
+    @Test
+    void login_ok_reseteaElContadorDelRateLimiter() {
+        when(usuarioRepository.findByEmailOrNombreUsuario("nuevo", "nuevo")).thenReturn(Optional.of(usuario(true)));
+        when(passwordEncoder.matches("password123", "hashed")).thenReturn(true);
+
+        authService.login(new LoginRequestDTO("nuevo", "password123"), "1.2.3.4");
+
+        org.mockito.Mockito.verify(loginRateLimiter).checkAllowed("nuevo", "1.2.3.4");
+        org.mockito.Mockito.verify(loginRateLimiter).recordSuccess("nuevo", "1.2.3.4");
+        org.mockito.Mockito.verify(loginRateLimiter, org.mockito.Mockito.never()).recordFailure(any(), any());
+    }
+
+    @Test
+    void login_fallido_registraElIntento() {
+        when(usuarioRepository.findByEmailOrNombreUsuario("nuevo", "nuevo")).thenReturn(Optional.of(usuario(true)));
+        when(passwordEncoder.matches("mala", "hashed")).thenReturn(false);
+
+        assertThatThrownBy(() -> authService.login(new LoginRequestDTO("nuevo", "mala"), "1.2.3.4"))
+                .isInstanceOf(BadRequestException.class);
+
+        org.mockito.Mockito.verify(loginRateLimiter).recordFailure("nuevo", "1.2.3.4");
+        org.mockito.Mockito.verify(loginRateLimiter, org.mockito.Mockito.never()).recordSuccess(any(), any());
+    }
+
+    @Test
+    void login_bloqueado_noConsultaNiLaBBDD() {
+        org.mockito.Mockito.doThrow(new dev.deveps.moteros.exceptions.TooManyRequestsException("bloqueado", 60))
+                .when(loginRateLimiter).checkAllowed("nuevo", "1.2.3.4");
+
+        assertThatThrownBy(() -> authService.login(new LoginRequestDTO("nuevo", "password123"), "1.2.3.4"))
+                .isInstanceOf(dev.deveps.moteros.exceptions.TooManyRequestsException.class);
+
+        org.mockito.Mockito.verifyNoInteractions(usuarioRepository, passwordEncoder);
     }
 
     @Test
@@ -180,21 +216,21 @@ class AuthServiceImplTest {
     void login_passwordIncorrecta_lanzaBadRequest() {
         when(usuarioRepository.findByEmailOrNombreUsuario("nuevo", "nuevo")).thenReturn(Optional.of(usuario(true)));
         when(passwordEncoder.matches("mala", "hashed")).thenReturn(false);
-        assertThatThrownBy(() -> authService.login(new LoginRequestDTO("nuevo", "mala")))
+        assertThatThrownBy(() -> authService.login(new LoginRequestDTO("nuevo", "mala"), "1.2.3.4"))
                 .isInstanceOf(BadRequestException.class);
     }
 
     @Test
     void login_usuarioInactivo_lanzaBadRequest() {
         when(usuarioRepository.findByEmailOrNombreUsuario("nuevo", "nuevo")).thenReturn(Optional.of(usuario(false)));
-        assertThatThrownBy(() -> authService.login(new LoginRequestDTO("nuevo", "password123")))
+        assertThatThrownBy(() -> authService.login(new LoginRequestDTO("nuevo", "password123"), "1.2.3.4"))
                 .isInstanceOf(BadRequestException.class);
     }
 
     @Test
     void login_usuarioNoExiste_lanzaBadRequest() {
         when(usuarioRepository.findByEmailOrNombreUsuario("x", "x")).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> authService.login(new LoginRequestDTO("x", "y")))
+        assertThatThrownBy(() -> authService.login(new LoginRequestDTO("x", "y"), "1.2.3.4"))
                 .isInstanceOf(BadRequestException.class);
     }
 }

@@ -10,7 +10,7 @@ public interface AuthService {
 
     LoginResponseDTO registro(RegistroUsuarioDTO dto);
 
-    LoginResponseDTO login(LoginRequestDTO dto);
+    LoginResponseDTO login(LoginRequestDTO dto, String clientIp);
 
     /** Rota el refresh token y devuelve un nuevo par access + refresh. */
     LoginResponseDTO refrescar(RefreshTokenRequestDTO dto);

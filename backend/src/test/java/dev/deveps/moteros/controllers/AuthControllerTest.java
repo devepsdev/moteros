@@ -38,7 +38,7 @@ class AuthControllerTest {
                 .type("Bearer")
                 .usuario(UsuarioResponseDTO.builder().email("motero@test.com").nombreUsuario("motero").build())
                 .build();
-        when(authService.login(any())).thenReturn(res);
+        when(authService.login(any(), any())).thenReturn(res);
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -47,6 +47,20 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.token").value("jwt.aqui"))
                 .andExpect(jsonPath("$.data.usuario.email").value("motero@test.com"));
+    }
+
+    @Test
+    void login_bloqueado_devuelve429ConRetryAfter() throws Exception {
+        when(authService.login(any(), any())).thenThrow(
+                new dev.deveps.moteros.exceptions.TooManyRequestsException("Demasiados intentos fallidos.", 600));
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"identificador\":\"motero\",\"password\":\"mala\"}"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .header().string("Retry-After", "600"))
+                .andExpect(jsonPath("$.success").value(false));
     }
 
     @Test

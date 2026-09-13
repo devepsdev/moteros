@@ -16,6 +16,7 @@ import dev.deveps.moteros.repositories.MotoRepository;
 import dev.deveps.moteros.repositories.RutaRepository;
 import dev.deveps.moteros.repositories.UsuarioRepository;
 import dev.deveps.moteros.security.JwtUtil;
+import dev.deveps.moteros.security.LoginRateLimiter;
 import dev.deveps.moteros.security.UsuarioAutenticadoProvider;
 import dev.deveps.moteros.services.AuthService;
 import dev.deveps.moteros.services.RefreshTokenService;
@@ -37,6 +38,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
     private final UsuarioAutenticadoProvider usuarioAutenticado;
+    private final LoginRateLimiter loginRateLimiter;
     private final EntityDtoMapper mapper;
 
     @Override
@@ -68,17 +70,25 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public LoginResponseDTO login(LoginRequestDTO dto) {
-        Usuario usuario = usuarioRepository
-                .findByEmailOrNombreUsuario(dto.getIdentificador(), dto.getIdentificador())
-                .orElseThrow(() -> new BadRequestException("Credenciales invalidas"));
+    public LoginResponseDTO login(LoginRequestDTO dto, String clientIp) {
+        loginRateLimiter.checkAllowed(dto.getIdentificador(), clientIp);
+        Usuario usuario;
+        try {
+            usuario = usuarioRepository
+                    .findByEmailOrNombreUsuario(dto.getIdentificador(), dto.getIdentificador())
+                    .orElseThrow(() -> new BadRequestException("Credenciales invalidas"));
 
-        if (Boolean.FALSE.equals(usuario.getActivo())) {
-            throw new BadRequestException("La cuenta esta desactivada");
+            if (Boolean.FALSE.equals(usuario.getActivo())) {
+                throw new BadRequestException("La cuenta esta desactivada");
+            }
+            if (!passwordEncoder.matches(dto.getPassword(), usuario.getPasswordHash())) {
+                throw new BadRequestException("Credenciales invalidas");
+            }
+        } catch (BadRequestException ex) {
+            loginRateLimiter.recordFailure(dto.getIdentificador(), clientIp);
+            throw ex;
         }
-        if (!passwordEncoder.matches(dto.getPassword(), usuario.getPasswordHash())) {
-            throw new BadRequestException("Credenciales invalidas");
-        }
+        loginRateLimiter.recordSuccess(dto.getIdentificador(), clientIp);
 
         return construirRespuesta(usuario);
     }
