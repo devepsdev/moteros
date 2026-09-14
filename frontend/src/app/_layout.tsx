@@ -63,6 +63,12 @@ function RootNavigator() {
           <Stack.Screen name="cuenta/datos" />
           <Stack.Screen name="cuenta/contrasena" />
           <Stack.Screen name="cuenta/eliminar" />
+          <Stack.Screen name="quedada/[uuid]" />
+          <Stack.Screen name="quedada/nueva" />
+          <Stack.Screen name="chat/[uuid]" />
+          <Stack.Screen name="chat/usuario/[usuarioUuid]" />
+          <Stack.Screen name="amigos" />
+          <Stack.Screen name="buscar" />
         </Stack.Protected>
 
         <Stack.Protected guard={!isAuthenticated}>

@@ -17,10 +17,12 @@ interface PerfilViewProps {
   esPropio: boolean;
   /** Cambia para forzar la recarga de motos y rutas (p. ej. al volver a la pantalla). */
   reloadKey?: number;
+  /** Acciones bajo la cabecera en perfiles ajenos (amistad, mensaje). */
+  acciones?: React.ReactNode;
 }
 
 /** Cabecera, motos y rutas de un usuario. Compartido por "Perfil" y el perfil ajeno. */
-export function PerfilView({ usuario, esPropio, reloadKey = 0 }: PerfilViewProps) {
+export function PerfilView({ usuario, esPropio, reloadKey = 0, acciones }: PerfilViewProps) {
   const theme = useTheme();
   const router = useRouter();
 
@@ -69,18 +71,27 @@ export function PerfilView({ usuario, esPropio, reloadKey = 0 }: PerfilViewProps
           }}
         >
           {stats.map((s, i) => (
-            <View key={s.label} style={{ flex: 1, alignItems: "center", borderLeftWidth: i === 0 ? 0 : 1, borderLeftColor: theme.colors.border }}>
+            <Pressable
+              key={s.label}
+              disabled={s.label !== "Amigos"}
+              onPress={() =>
+                router.push(esPropio ? "/amigos" : { pathname: "/amigos", params: { usuarioUuid: usuario.uuid, nombre: usuario.nombreCompleto } })
+              }
+              style={({ pressed }) => ({ flex: 1, alignItems: "center", borderLeftWidth: i === 0 ? 0 : 1, borderLeftColor: theme.colors.border, opacity: pressed ? 0.6 : 1 })}
+            >
               <Text variant="stat">{s.value}</Text>
-              <Text variant="overline" color="inkFaint">
+              <Text variant="overline" color={s.label === "Amigos" ? "accent" : "inkFaint"}>
                 {s.label}
               </Text>
-            </View>
+            </Pressable>
           ))}
         </View>
 
         {esPropio ? (
           <Button label="Editar perfil" variant="secondary" fullWidth icon={<Feather name="edit-2" size={15} color={theme.colors.ink} />} onPress={() => router.push("/cuenta/datos")} />
-        ) : null}
+        ) : (
+          acciones
+        )}
       </View>
 
       <Seccion titulo="Garaje" accion={esPropio ? { label: "Añadir", onPress: () => router.push("/moto/editar") } : undefined}>

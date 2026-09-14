@@ -173,6 +173,15 @@ export default function RutaDetalleScreen() {
             />
           </View>
 
+          <Button
+            label="Organizar quedada"
+            variant="ghost"
+            fullWidth
+            icon={<Feather name="calendar" size={16} color={theme.colors.accent} />}
+            onPress={() => router.push({ pathname: "/quedada/nueva", params: { rutaUuid: r.uuid, rutaNombre: r.nombre } })}
+            style={{ marginTop: -theme.spacing.md }}
+          />
+
           <View style={{ gap: theme.spacing.md }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
               <Text variant="title2">Valoraciones</Text>

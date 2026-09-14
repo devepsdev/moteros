@@ -1,6 +1,7 @@
 import { ApiError } from "@/api/client";
 import * as usuariosApi from "@/api/usuarios";
 import { useAuth } from "@/auth/AuthContext";
+import { AmistadAcciones } from "@/components/AmistadAcciones";
 import { PerfilView } from "@/components/PerfilView";
 import { EmptyState, ErrorState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
@@ -29,7 +30,7 @@ export default function UsuarioScreen() {
       <IconButton name="arrow-left" accessibilityLabel="Volver" onPress={volver} style={{ marginLeft: theme.spacing.sm }} />
       {usuario.data ? (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: theme.spacing.sm, paddingBottom: theme.spacing.huge }}>
-          <PerfilView usuario={usuario.data} esPropio={false} />
+          <PerfilView usuario={usuario.data} esPropio={false} acciones={<AmistadAcciones usuario={usuario.data} onCambio={usuario.reload} />} />
         </ScrollView>
       ) : usuario.loading ? (
         <LoadingView />

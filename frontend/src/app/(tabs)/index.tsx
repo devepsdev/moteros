@@ -27,7 +27,10 @@ export default function FeedScreen() {
         <Text variant="display" style={{ fontSize: 30 }}>
           moter<Text variant="display" color="accent" style={{ fontSize: 30 }}>@</Text>s
         </Text>
-        <IconButton name="edit-3" variant="accent" size={18} accessibilityLabel="Nueva publicación" onPress={() => router.push("/publicacion/nueva")} />
+        <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
+          <IconButton name="search" variant="surface" size={18} accessibilityLabel="Buscar moteros" onPress={() => router.push("/buscar")} />
+          <IconButton name="edit-3" variant="accent" size={18} accessibilityLabel="Nueva publicación" onPress={() => router.push("/publicacion/nueva")} />
+        </View>
       </View>
 
       {feed.loading && feed.items.length === 0 ? (
