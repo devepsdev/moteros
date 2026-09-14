@@ -57,6 +57,7 @@ public class ChatServiceImpl implements ChatService {
         Conversacion c = buscar(conversacionUuid);
         exigirParticipante(c, yoId);
         mensajeRepository.marcarLeidos(c.getId(), yoId);
+        notificacionService.marcarLeidasDeConversacion(yoId, c.getId());
         return mensajeRepository
                 .findByConversacionUuidOrderByFechaEnvioDesc(conversacionUuid, pageable)
                 .map(m -> mapper.mensajeResponse(m, yoId));
@@ -89,6 +90,7 @@ public class ChatServiceImpl implements ChatService {
         Conversacion c = buscar(conversacionUuid);
         exigirParticipante(c, yoId);
         mensajeRepository.marcarLeidos(c.getId(), yoId);
+        notificacionService.marcarLeidasDeConversacion(yoId, c.getId());
     }
 
     @Override

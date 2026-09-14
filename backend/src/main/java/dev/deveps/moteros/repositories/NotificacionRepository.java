@@ -1,6 +1,7 @@
 package dev.deveps.moteros.repositories;
 
 import dev.deveps.moteros.entities.Notificacion;
+import dev.deveps.moteros.entities.enums.TipoNotificacion;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,6 +22,17 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Inte
     Page<Notificacion> findByUsuarioUuidAndLeidoFalseOrderByFechaCreacionDesc(String usuarioUuid, Pageable pageable);
 
     long countByUsuarioIdAndLeidoFalse(Integer usuarioId);
+
+    Optional<Notificacion> findFirstByUsuarioIdAndTipoAndReferenciaIdAndLeidoFalse(
+            Integer usuarioId, TipoNotificacion tipo, Integer referenciaId);
+
+    @Modifying
+    @Query("""
+            UPDATE Notificacion n SET n.leido = true
+            WHERE n.usuario.id = :usuarioId AND n.tipo = :tipo AND n.referenciaId = :referenciaId AND n.leido = false
+            """)
+    int marcarLeidasPorReferencia(@Param("usuarioId") Integer usuarioId, @Param("tipo") TipoNotificacion tipo,
+                                  @Param("referenciaId") Integer referenciaId);
 
     long countByUsuarioUuidAndLeidoFalse(String usuarioUuid);
 

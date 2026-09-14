@@ -24,6 +24,13 @@ public class NotificacionResponseDTO {
     /** ID del registro relacionado (publicacion, quedada, mensaje, etc.). Puede ser null. */
     private Integer referenciaId;
 
+    /**
+     * UUID del registro relacionado para navegar desde la app: publicacion (like, comentario),
+     * quedada (nueva_quedada, inscripcion_quedada, quedada_cancelada), conversacion (mensaje)
+     * o ruta (valoracion_ruta). Null en amistades (se usa usuarioOrigen) o si ya no existe.
+     */
+    private String referenciaUuid;
+
     /** Usuario que origina la notificacion. Puede ser null. */
     private UsuarioSummaryDTO usuarioOrigen;
 

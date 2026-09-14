@@ -21,4 +21,7 @@ public interface NotificacionService {
      * son el mismo usuario. Uso interno de otros servicios.
      */
     void notificar(Usuario destino, TipoNotificacion tipo, Integer referenciaId, Usuario origen, String mensaje);
+
+    /** Marca como leidas las notificaciones de mensajes de una conversacion (al abrirla). */
+    void marcarLeidasDeConversacion(Integer usuarioId, Integer conversacionId);
 }
