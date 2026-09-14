@@ -317,3 +317,51 @@ export interface Conversacion {
   numNoLeidos: number | null;
   fechaCreacion: string;
 }
+
+// ===================== NOTIFICACIONES =====================
+
+export type TipoNotificacion =
+  | "like"
+  | "comentario"
+  | "solicitud_amistad"
+  | "amistad_aceptada"
+  | "inscripcion_quedada"
+  | "nueva_quedada"
+  | "quedada_cancelada"
+  | "mensaje"
+  | "valoracion_ruta";
+
+export interface Notificacion {
+  uuid: string;
+  tipo: TipoNotificacion;
+  mensaje: string;
+  referenciaId: number | null;
+  /** UUID de la publicación, quedada, conversación o ruta relacionada (null en amistades). */
+  referenciaUuid: string | null;
+  usuarioOrigen: UsuarioSummary | null;
+  leido: boolean;
+  fechaCreacion: string;
+}
+
+// ===================== ADMIN =====================
+
+export interface EstadisticasGlobales {
+  usuariosTotales: number;
+  usuariosActivos: number;
+  administradores: number;
+  motos: number;
+  rutas: number;
+  quedadas: number;
+  quedadasProximas: number;
+  publicaciones: number;
+  comentarios: number;
+  valoraciones: number;
+  amistadesAceptadas: number;
+  rutasPorDificultad: Record<string, number>;
+  rutasPorTerreno: Record<string, number>;
+  motosPorTipo: Record<string, number>;
+  quedadasPorEstado: Record<string, number>;
+  topRutasPorValoracion: RutaSummary[];
+  /** Mes en formato "YYYY-MM". */
+  altasUsuariosPorMes: { mes: string; total: number }[];
+}

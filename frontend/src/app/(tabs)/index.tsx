@@ -2,9 +2,11 @@ import * as publicacionesApi from "@/api/publicaciones";
 import { PublicacionCard } from "@/components/PublicacionCard";
 import { EmptyState, ErrorState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
+import { Insignia } from "@/components/ui/Insignia";
 import { ListFooter, LoadingView } from "@/components/ui/ListFooter";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
+import { useNotificacionesNoLeidas } from "@/lib/noLeidos";
 import { useAlternarLike } from "@/lib/useAlternarLike";
 import { usePagedList } from "@/lib/usePagedList";
 import { useRefocus } from "@/lib/useRefocus";
@@ -17,6 +19,7 @@ export default function FeedScreen() {
   const router = useRouter();
   const feed = usePagedList((page) => publicacionesApi.feed(page), []);
   const alternarLike = useAlternarLike(feed.updateItems);
+  const notificaciones = useNotificacionesNoLeidas();
 
   // Al volver de publicar o de un detalle se refresca el feed.
   useRefocus(feed.reload);
@@ -29,6 +32,10 @@ export default function FeedScreen() {
         </Text>
         <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
           <IconButton name="search" variant="surface" size={18} accessibilityLabel="Buscar moteros" onPress={() => router.push("/buscar")} />
+          <View>
+            <IconButton name="bell" variant="surface" size={18} accessibilityLabel={notificaciones ? `Notificaciones, ${notificaciones} sin leer` : "Notificaciones"} onPress={() => router.push("/notificaciones")} />
+            <Insignia valor={notificaciones} style={{ position: "absolute", top: -2, right: -2 }} />
+          </View>
           <IconButton name="edit-3" variant="accent" size={18} accessibilityLabel="Nueva publicación" onPress={() => router.push("/publicacion/nueva")} />
         </View>
       </View>
