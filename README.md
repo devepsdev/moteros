@@ -27,6 +27,7 @@ moter@s/
 │   │   └── config/        OpenAPI, WebConfig (uploads)
 │   ├── src/test/         92 tests (JUnit 5, @DataJpaTest con H2, Mockito, MockMvc)
 │   └── deploy/           Artefactos y runbook de despliegue en VPS  →  deploy/DEPLOY.md
+├── admin/                Panel web de administración (Angular 21 + Tailwind 4) → moteros.deveps.dev/admin/
 └── frontend/             App Android con Expo (SDK 57, expo-router)  →  frontend/README.md
 ```
 
@@ -93,6 +94,27 @@ VPS OVHcloud (Ubuntu 24.04, Nginx, MySQL 8, Certbot). El backend corre como serv
 
 Runbook completo y scripts: **[`backend/deploy/DEPLOY.md`](backend/deploy/DEPLOY.md)**.
 Redespliegue rápido: `cd backend && SSH_HOST=vps bash deploy/deploy.sh`.
+
+## Panel de administración
+
+Web interna en `admin/` (Angular 21 zoneless + Tailwind 4, el mismo stack y estructura que el panel
+de rastrix, con la identidad oscura y naranja de la app). Solo entran cuentas `admin`: si la cuenta
+no es administradora se cierra la sesión en el acto.
+
+Pantallas: resumen con tareas pendientes, rutas (listado con búsqueda, alta y edición trazando el
+recorrido sobre un mapa de OpenStreetMap), sugerencias del scraper (revisión con vista previa del
+recorrido, alta de la ruta precargada y rechazo) y usuarios (roles, incluido `scraper`, y bajas).
+
+En local, con el backend en el puerto 8080:
+
+```bash
+cd admin
+npm install
+npm start          # http://localhost:4200 — proxy.conf.json reenvía /api al backend
+```
+
+Despliegue: `SSH_HOST=vps bash backend/deploy/deploy-admin.sh` (compila, sube a
+`/var/www/moteros-admin` y añade el bloque `/admin/` al vhost de Nginx si falta).
 
 ## Frontend
 

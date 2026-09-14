@@ -96,6 +96,17 @@ cd backend && SSH_HOST=vps bash deploy/deploy.sh   # build + scp jar + systemctl
 | Restaurar | `zcat /var/backups/mysql/moteros-<fecha>.sql.gz \| sudo mysql moteros` |
 | Renovar SSL | automático (timer certbot); manual `sudo certbot renew` |
 
+## Panel de administración
+
+```bash
+SSH_HOST=vps bash backend/deploy/deploy-admin.sh
+```
+
+Compila `admin/` en local, instala los estáticos en `/var/www/moteros-admin` y, si el vhost
+`moteros-api` (gestionado por Certbot) no tiene aún `location /admin/`, inserta los dos bloques
+antes del `location /` del proxy, guardando una copia `.bak-<fecha>`. Queda en
+<https://moteros.deveps.dev/admin/>.
+
 ## Notas
 
 - **8080** escucha solo en `127.0.0.1` (`server.address=127.0.0.1` en `application-prod.properties`). No se abre nada en UFW.

@@ -1,0 +1,70 @@
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <p class="eyebrow text-accent">Catálogo</p>
+    <h1 class="display mt-1 text-5xl">Rutas</h1>
+    <p class="mt-2 text-sm text-ink-muted">Todas las rutas publicadas, las de los usuarios y las que añades desde aquí.</p>
+  </div>
+  <a routerLink="/rutas/nueva" class="btn btn-primary">Nueva ruta</a>
+</div>
+
+<input
+  type="search"
+  class="input mt-8 max-w-md"
+  placeholder="Buscar por nombre, salida o llegada"
+  (input)="buscar($any($event.target).value)"
+/>
+
+<div class="card mt-5 overflow-hidden">
+  @if (loading() && !result()) {
+    <div class="h-48 animate-pulse bg-sunken"></div>
+  } @else if (result(); as page) {
+    @if (page.content.length === 0) {
+      <div class="px-5 py-16 text-center">
+        <p class="display text-2xl">Sin rutas</p>
+        <p class="mt-1 text-sm text-ink-muted">No hay ninguna ruta que coincida.</p>
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="border-b border-line text-ink-faint">
+            <tr>
+              <th class="eyebrow px-5 py-3">Ruta</th>
+              <th class="eyebrow px-5 py-3">Distancia</th>
+              <th class="eyebrow px-5 py-3">Dificultad</th>
+              <th class="eyebrow px-5 py-3">Valoración</th>
+              <th class="eyebrow px-5 py-3">Creada por</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (ruta of page.content; track ruta.uuid) {
+              <tr class="border-b border-line last:border-0 hover:bg-sunken">
+                <td class="px-5 py-3">
+                  <a [routerLink]="['/rutas', ruta.uuid]" class="font-semibold hover:text-accent">{{ ruta.nombre }}</a>
+                  <p class="text-xs text-ink-muted">{{ ruta.puntoInicio }} → {{ ruta.puntoFin }}</p>
+                </td>
+                <td class="px-5 py-3 whitespace-nowrap">
+                  {{ formatKm(ruta.distanciaKm) }}
+                  <p class="text-xs text-ink-faint">{{ formatDuracion(ruta.duracionEstimadaMin) }}</p>
+                </td>
+                <td class="px-5 py-3 whitespace-nowrap">
+                  {{ etiquetaDificultad(ruta.dificultad) }}
+                  <p class="text-xs text-ink-faint">{{ etiquetaTerreno(ruta.tipoTerreno) }}</p>
+                </td>
+                <td class="px-5 py-3 whitespace-nowrap">
+                  @if (ruta.valoracionMedia != null) {
+                    <span class="text-amber">★</span> {{ ruta.valoracionMedia.toFixed(1) }}
+                    <span class="text-xs text-ink-faint">({{ ruta.numValoraciones }})</span>
+                  } @else {
+                    <span class="text-ink-faint">—</span>
+                  }
+                </td>
+                <td class="px-5 py-3 text-ink-muted">&#64;{{ ruta.creador.nombreUsuario }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <app-pagination [page]="page.pageable.page" [totalPages]="page.pageable.totalPages" [totalElements]="page.pageable.totalElements" (pageChange)="goToPage($event)" />
+    }
+  }
+</div>

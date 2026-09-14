@@ -1,0 +1,101 @@
+<a [routerLink]="sugerenciaCargada() ? '/sugerencias' : '/rutas'" class="text-sm text-ink-muted hover:text-ink">← Volver</a>
+<p class="eyebrow mt-4 text-accent">{{ sugerenciaCargada() ? 'Desde una sugerencia' : 'Catálogo' }}</p>
+<h1 class="display mt-1 text-5xl">{{ isEdit() ? 'Editar ruta' : 'Nueva ruta' }}</h1>
+
+@if (loading()) {
+  <div class="card mt-8 h-96 animate-pulse bg-sunken"></div>
+} @else {
+  @if (sugerenciaCargada(); as s) {
+    <div class="card mt-6 border-accent/40 p-5 text-sm">
+      <p>
+        Datos extraídos automáticamente de
+        <a [href]="s.urlFuente" target="_blank" rel="noopener noreferrer" class="text-accent underline-offset-2 hover:underline">la fuente</a>.
+        Compruébalos antes de publicar. Al guardar, la sugerencia queda aprobada.
+      </p>
+      @if (sinCoordenadas().length > 0) {
+        <p class="mt-2 text-ink-muted">
+          Sin ubicar en el mapa: <strong class="text-ink">{{ sinCoordenadas().join(', ') }}</strong>. Márcalos a mano si forman parte del recorrido.
+        </p>
+      }
+    </div>
+  }
+
+  <form class="mt-6 grid items-start gap-6 lg:grid-cols-5" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <!-- Mapa -->
+    <section class="lg:sticky lg:top-6 lg:col-span-3">
+      <app-ruta-map class="h-[460px]" [puntos]="puntos()" [editable]="true" (puntosChange)="puntos.set($event)" />
+      <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm text-ink-muted">
+          @if (puntos().length === 0) {
+            Haz clic en el mapa para marcar la salida y sigue marcando el recorrido.
+          } @else {
+            {{ puntos().length }} {{ puntos().length === 1 ? 'punto' : 'puntos' }} ·
+            <strong class="text-ink">{{ formatKm(distancia()) }}</strong> · arrastra un punto para moverlo
+          }
+        </p>
+        <div class="flex gap-2">
+          <button type="button" class="btn btn-secondary btn-sm" [disabled]="puntos().length === 0" (click)="deshacer()">Deshacer</button>
+          <button type="button" class="btn btn-danger btn-sm" [disabled]="puntos().length === 0" (click)="borrarRecorrido()">Borrar recorrido</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Datos -->
+    <section class="card p-6 lg:col-span-2">
+      <label class="label" for="nombre">Nombre</label>
+      <input id="nombre" class="input" formControlName="nombre" [class.input-error]="errorFor('nombre')" />
+      @if (errorFor('nombre'); as e) { <p class="field-error">{{ e }}</p> }
+
+      <div class="mt-5 grid gap-4 sm:grid-cols-2">
+        <div>
+          <label class="label" for="puntoInicio">Salida</label>
+          <input id="puntoInicio" class="input" formControlName="puntoInicio" [class.input-error]="errorFor('puntoInicio')" />
+          @if (errorFor('puntoInicio'); as e) { <p class="field-error">{{ e }}</p> }
+        </div>
+        <div>
+          <label class="label" for="puntoFin">Llegada</label>
+          <input id="puntoFin" class="input" formControlName="puntoFin" [class.input-error]="errorFor('puntoFin')" />
+          @if (errorFor('puntoFin'); as e) { <p class="field-error">{{ e }}</p> }
+        </div>
+      </div>
+
+      <div class="mt-5 grid gap-4 sm:grid-cols-2">
+        <div>
+          <label class="label" for="dificultad">Dificultad</label>
+          <select id="dificultad" class="input" formControlName="dificultad">
+            @for (d of dificultades; track d.value) { <option [value]="d.value">{{ d.label }}</option> }
+          </select>
+        </div>
+        <div>
+          <label class="label" for="tipoTerreno">Terreno</label>
+          <select id="tipoTerreno" class="input" formControlName="tipoTerreno">
+            @for (t of terrenos; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+          </select>
+        </div>
+      </div>
+
+      <label class="label mt-5" for="duracion">Duración estimada (minutos)</label>
+      <input id="duracion" class="input" type="number" min="1" formControlName="duracionEstimadaMin" [class.input-error]="errorFor('duracionEstimadaMin')" />
+      @if (errorFor('duracionEstimadaMin'); as e) { <p class="field-error">{{ e }}</p> }
+
+      <label class="label mt-5" for="descripcion">Descripción</label>
+      <textarea id="descripcion" class="input" rows="6" formControlName="descripcion"></textarea>
+      @if (errorFor('descripcion'); as e) { <p class="field-error">{{ e }}</p> }
+
+      @if (formError()) {
+        <p class="mt-5 text-sm text-danger">{{ formError() }}</p>
+      }
+
+      <div class="mt-6 flex flex-wrap justify-between gap-2">
+        @if (isEdit()) {
+          <button type="button" class="btn btn-danger" (click)="remove()">Eliminar</button>
+        } @else {
+          <span></span>
+        }
+        <button type="submit" class="btn btn-primary" [disabled]="saving()">
+          {{ saving() ? 'Guardando…' : isEdit() ? 'Guardar cambios' : sugerenciaCargada() ? 'Publicar y aprobar' : 'Publicar ruta' }}
+        </button>
+      </div>
+    </section>
+  </form>
+}

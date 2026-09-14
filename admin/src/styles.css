@@ -1,0 +1,69 @@
+@import "tailwindcss";
+@source "./app";
+
+/* Misma identidad que la app móvil: fondo casi negro, tinta cálida y acento naranja. */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Barlow Condensed", "Arial Narrow", ui-sans-serif, sans-serif;
+
+  --color-paper: #0E0F11;
+  --color-surface: #17191C;
+  --color-sunken: #111215;
+  --color-ink: #F4EFE6;
+  --color-ink-muted: #B5B0A6;
+  --color-ink-faint: #7F7B74;
+  --color-line: #2A2D31;
+  --color-line-strong: #3B3F45;
+  --color-accent: #FF6A13;
+  --color-accent-strong: #E85A0C;
+  --color-accent-soft: #3A2012;
+  --color-support: #5FBF8A;
+  --color-support-soft: #15291E;
+  --color-amber: #F2B53A;
+  --color-danger: #F0625A;
+  --color-danger-soft: #3A1715;
+}
+
+/* Microtexto en mayúsculas espaciadas, como los antetítulos de la app. */
+@utility eyebrow {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary { @apply bg-accent text-white hover:bg-accent-strong; }
+  .btn-secondary { @apply border border-line-strong bg-surface text-ink hover:bg-sunken; }
+  .btn-ghost { @apply text-accent hover:bg-accent-soft; }
+  .btn-danger { @apply border border-line-strong bg-surface text-danger hover:bg-danger-soft; }
+  .btn-sm { @apply h-8 px-3 text-xs; }
+
+  .input {
+    @apply h-10 w-full rounded-lg border border-line bg-sunken px-3 text-sm text-ink outline-none placeholder:text-ink-faint focus:border-accent focus:ring-2 focus:ring-accent/20;
+  }
+  textarea.input { @apply h-auto min-h-24 py-2 leading-relaxed; }
+  select.input { @apply pr-8; }
+  .input-error { @apply border-danger focus:border-danger focus:ring-danger/20; }
+
+  .label { @apply eyebrow mb-1.5 block text-ink-faint; }
+  .field-error { @apply mt-1 text-xs text-danger; }
+  .card { @apply rounded-2xl border border-line bg-surface; }
+  .badge { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold tracking-wider uppercase; }
+  .display { @apply font-display font-bold tracking-wide uppercase; }
+
+  .nav-link { @apply flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:bg-sunken hover:text-ink; }
+  .nav-active { @apply bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent; }
+  .nav-count { @apply rounded-full bg-accent px-2 py-0.5 text-[11px] font-semibold text-white; }
+}
+
+/* Leaflet sobre fondo oscuro: controles y atribución legibles. */
+.leaflet-container { background: #111215; font-family: var(--font-sans); }
+.leaflet-bar a { background: #17191C; color: #F4EFE6; border-color: #2A2D31; }
+.leaflet-bar a:hover { background: #111215; }
+.leaflet-control-attribution { background: rgba(14, 15, 17, 0.8) !important; color: #B5B0A6; }
+.leaflet-control-attribution a { color: #FF6A13; }

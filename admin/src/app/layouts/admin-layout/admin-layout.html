@@ -1,0 +1,55 @@
+<div class="min-h-screen lg:flex">
+  <!-- Barra superior en móvil -->
+  <header class="flex items-center justify-between border-b border-line bg-surface px-4 py-3 lg:hidden">
+    <span class="display text-2xl">moter<span class="text-accent">&#64;</span>s</span>
+    <button type="button" class="btn btn-secondary btn-sm" (click)="menuOpen.set(!menuOpen())">Menú</button>
+  </header>
+
+  <aside
+    class="fixed inset-y-0 left-0 z-[1030] flex w-64 flex-col border-r border-line bg-surface transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0"
+    [class.-translate-x-full]="!menuOpen()"
+  >
+    <div class="flex items-center gap-3 px-6 pt-7 pb-6">
+      <img src="favicon.svg" alt="" class="h-10 w-10" />
+      <div>
+        <p class="display text-3xl leading-none">moter<span class="text-accent">&#64;</span>s</p>
+        <p class="eyebrow mt-1.5 text-ink-faint">Administración</p>
+      </div>
+    </div>
+
+    <nav class="flex flex-1 flex-col gap-0.5 px-3">
+      <a routerLink="/" [routerLinkActiveOptions]="{ exact: true }" routerLinkActive="nav-active" class="nav-link">Resumen</a>
+      <a routerLink="/rutas" routerLinkActive="nav-active" class="nav-link">Rutas</a>
+      <a routerLink="/sugerencias" routerLinkActive="nav-active" class="nav-link">
+        <span class="flex-1">Sugerencias</span>
+        @if (statsService.stats(); as s) {
+          @if (s.sugerenciasPendientes > 0) {
+            <span class="nav-count" title="Rutas sugeridas pendientes de revisar">{{ s.sugerenciasPendientes }}</span>
+          }
+        }
+      </a>
+      <a routerLink="/usuarios" routerLinkActive="nav-active" class="nav-link">Usuarios</a>
+    </nav>
+
+    <div class="border-t border-line px-6 py-5">
+      @if (auth.user(); as user) {
+        <p class="truncate text-sm font-semibold">{{ user.nombreCompleto }}</p>
+        <p class="truncate text-xs text-ink-muted">{{ user.email }}</p>
+      }
+      <button type="button" class="btn btn-ghost btn-sm mt-3 -ml-3" (click)="auth.logout()">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  @if (menuOpen()) {
+    <div class="fixed inset-0 z-[1020] bg-black/60 lg:hidden" (click)="menuOpen.set(false)"></div>
+  }
+
+  <main class="min-w-0 flex-1">
+    <div class="mx-auto max-w-6xl px-5 py-8 lg:px-10 lg:py-10">
+      <router-outlet />
+    </div>
+  </main>
+</div>
+
+<app-toast-host />
+<app-confirm-host />

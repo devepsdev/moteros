@@ -1,0 +1,60 @@
+<p class="eyebrow text-accent">Resumen</p>
+<h1 class="display mt-1 text-5xl">{{ greeting() }}</h1>
+
+@if (stats(); as s) {
+  <!-- Tareas pendientes: lo primero que hay que ver al entrar -->
+  <section class="mt-8 grid gap-4 md:grid-cols-2">
+    <a routerLink="/sugerencias" class="card group flex items-center gap-5 p-6 transition-colors hover:border-accent">
+      <span class="display text-6xl" [class.text-accent]="s.sugerenciasPendientes > 0" [class.text-ink-faint]="s.sugerenciasPendientes === 0">
+        {{ s.sugerenciasPendientes }}
+      </span>
+      <span class="flex-1">
+        <span class="block font-semibold">Rutas sugeridas por revisar</span>
+        <span class="block text-sm text-ink-muted">
+          {{ s.sugerenciasPendientes === 0 ? 'Nada pendiente.' : 'Las que encuentra el scraper en webs de rutas.' }}
+        </span>
+      </span>
+      <span class="text-ink-faint transition-transform group-hover:translate-x-1">→</span>
+    </a>
+
+    <a routerLink="/rutas/nueva" class="card group flex items-center gap-5 p-6 transition-colors hover:border-accent">
+      <span class="display text-6xl text-accent">+</span>
+      <span class="flex-1">
+        <span class="block font-semibold">Añadir una ruta</span>
+        <span class="block text-sm text-ink-muted">Trázala sobre el mapa y publícala en la app.</span>
+      </span>
+      <span class="text-ink-faint transition-transform group-hover:translate-x-1">→</span>
+    </a>
+  </section>
+
+  <section class="mt-10">
+    <p class="eyebrow mb-4 text-ink-faint">Catálogo y comunidad</p>
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div class="card p-5">
+        <p class="text-sm text-ink-muted">Rutas</p>
+        <p class="display mt-2 text-4xl">{{ s.rutas }}</p>
+        <p class="mt-1 text-xs text-ink-faint">{{ s.valoraciones }} valoraciones</p>
+      </div>
+      <div class="card p-5">
+        <p class="text-sm text-ink-muted">Usuarios</p>
+        <p class="display mt-2 text-4xl">{{ s.usuariosTotales }}</p>
+        <p class="mt-1 text-xs text-ink-faint">{{ s.usuariosActivos }} activos · {{ s.administradores }} {{ s.administradores === 1 ? 'admin' : 'admins' }}</p>
+      </div>
+      <div class="card p-5">
+        <p class="text-sm text-ink-muted">Quedadas</p>
+        <p class="display mt-2 text-4xl">{{ s.quedadas }}</p>
+        <p class="mt-1 text-xs text-ink-faint">{{ s.quedadasProximas }} próximas</p>
+      </div>
+      <div class="card p-5">
+        <p class="text-sm text-ink-muted">Publicaciones</p>
+        <p class="display mt-2 text-4xl">{{ s.publicaciones }}</p>
+        <p class="mt-1 text-xs text-ink-faint">{{ s.comentarios }} comentarios · {{ s.motos }} motos</p>
+      </div>
+    </div>
+  </section>
+} @else {
+  <div class="mt-8 grid gap-4 md:grid-cols-2">
+    <div class="card h-28 animate-pulse bg-sunken"></div>
+    <div class="card h-28 animate-pulse bg-sunken"></div>
+  </div>
+}

@@ -1,0 +1,63 @@
+<p class="eyebrow text-accent">Comunidad</p>
+<h1 class="display mt-1 text-5xl">Usuarios</h1>
+<p class="mt-2 text-sm text-ink-muted">Roles y bajas. La cuenta del scraper ha de tener el rol «Scraper» para poder enviar sugerencias.</p>
+
+<input type="search" class="input mt-8 max-w-md" placeholder="Buscar por nombre, usuario o email" (input)="buscar($any($event.target).value)" />
+
+<div class="card mt-5 overflow-hidden">
+  @if (loading() && !result()) {
+    <div class="h-48 animate-pulse bg-sunken"></div>
+  } @else if (result(); as page) {
+    @if (page.content.length === 0) {
+      <div class="px-5 py-16 text-center">
+        <p class="display text-2xl">Sin resultados</p>
+        <p class="mt-1 text-sm text-ink-muted">Prueba con otro nombre o email.</p>
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="border-b border-line text-ink-faint">
+            <tr>
+              <th class="eyebrow px-5 py-3">Usuario</th>
+              <th class="eyebrow px-5 py-3">Alta</th>
+              <th class="eyebrow px-5 py-3">Rol</th>
+              <th class="eyebrow px-5 py-3">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of page.content; track u.uuid) {
+              <tr class="border-b border-line last:border-0">
+                <td class="px-5 py-3">
+                  <p class="font-semibold">
+                    {{ u.nombreCompleto }}
+                    @if (u.uuid === auth.user()?.uuid) { <span class="badge ml-1 bg-accent-soft text-accent">Tú</span> }
+                  </p>
+                  <p class="text-xs text-ink-muted">&#64;{{ u.nombreUsuario }} · {{ u.email }}</p>
+                </td>
+                <td class="px-5 py-3 whitespace-nowrap text-ink-muted">{{ u.fechaRegistro | date: 'd MMM y' }}</td>
+                <td class="px-5 py-3">
+                  <select #rol class="input h-9 w-40" [value]="u.rol" [disabled]="busy() === u.uuid" (change)="changeRole(u, rol)">
+                    @for (r of roles; track r.value) {
+                      <option [value]="r.value" [selected]="r.value === u.rol">{{ r.label }}</option>
+                    }
+                  </select>
+                </td>
+                <td class="px-5 py-3 whitespace-nowrap">
+                  <div class="flex items-center gap-3">
+                    <span class="badge" [class]="u.activo ? 'bg-support-soft text-support' : 'bg-danger-soft text-danger'">{{ u.activo ? 'Activo' : 'De baja' }}</span>
+                    @if (u.uuid !== auth.user()?.uuid) {
+                      <button type="button" class="btn btn-sm" [class]="u.activo ? 'btn-danger' : 'btn-secondary'" [disabled]="busy() === u.uuid" (click)="toggleActive(u)">
+                        {{ u.activo ? 'Dar de baja' : 'Reactivar' }}
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <app-pagination [page]="page.pageable.page" [totalPages]="page.pageable.totalPages" [totalElements]="page.pageable.totalElements" (pageChange)="goToPage($event)" />
+    }
+  }
+</div>

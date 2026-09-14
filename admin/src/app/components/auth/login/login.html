@@ -1,0 +1,45 @@
+<div class="flex min-h-screen items-center justify-center px-5">
+  <div class="w-full max-w-sm">
+    <div class="mb-8 flex flex-col items-center text-center">
+      <img src="favicon.svg" alt="" class="h-16 w-16" />
+      <p class="display mt-4 text-6xl leading-none">moter<span class="text-accent">&#64;</span>s</p>
+      <p class="eyebrow mt-3 text-ink-faint">Panel de administración</p>
+    </div>
+
+    <form class="card p-7 shadow-sm" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      @if (caducada()) {
+        <p class="mb-5 rounded-lg bg-accent-soft px-3 py-2 text-sm text-accent">Tu sesión ha caducado. Vuelve a entrar.</p>
+      }
+
+      <label class="label" for="identificador">Email o nombre de usuario</label>
+      <input
+        id="identificador"
+        class="input"
+        type="text"
+        autocomplete="username"
+        formControlName="identificador"
+        [class.input-error]="form.controls.identificador.touched && form.controls.identificador.invalid"
+      />
+
+      <label class="label mt-5" for="password">Contraseña</label>
+      <input
+        id="password"
+        class="input"
+        type="password"
+        autocomplete="current-password"
+        formControlName="password"
+        [class.input-error]="form.controls.password.touched && form.controls.password.invalid"
+      />
+
+      @if (error()) {
+        <p class="mt-4 text-sm text-danger">{{ error() }}</p>
+      }
+
+      <button type="submit" class="btn btn-primary mt-6 w-full" [disabled]="submitting()">
+        {{ submitting() ? 'Entrando…' : 'Entrar' }}
+      </button>
+    </form>
+
+    <p class="mt-6 text-center text-xs text-ink-faint">Acceso restringido a cuentas de administrador.</p>
+  </div>
+</div>
