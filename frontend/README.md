@@ -1,56 +1,68 @@
-# Welcome to your Expo app 👋
+# moter@s — app
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App Android de moter@s hecha con Expo SDK 57 y expo-router. Consume la API del backend
+(`../backend`), desplegada en <https://moteros.deveps.dev>.
 
-## Get started
+> Antes de tocar código, leer los docs versionados de Expo: <https://docs.expo.dev/versions/v57.0.0/>.
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Arrancar en local
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Se abre con **Expo Go** en el móvil (el mapa funciona sin clave en Expo Go).
 
-### Other setup steps
+Variables de entorno (opcionales, en `.env.local`, que no se sube al repositorio):
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+| Variable | Para qué | Por defecto |
+| --- | --- | --- |
+| `EXPO_PUBLIC_API_URL` | URL de la API (p. ej. `http://192.168.1.50:8080` para el backend local) | `https://moteros.deveps.dev` |
+| `GOOGLE_MAPS_API_KEY` | Clave de *Maps SDK for Android*; solo hace falta al compilar el APK/AAB | — |
 
-## Learn more
+Comprobaciones:
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npm run typecheck
+npm run lint
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Los tipos de las rutas (`typedRoutes`) se generan al arrancar `npx expo start`; si se añade una
+pantalla nueva y `tsc` no la reconoce, basta con arrancar Metro una vez.
 
-## Join the community
+## Estructura
 
-Join our community of developers creating universal apps.
+```
+src/
+├── app/          Pantallas (expo-router). (tabs): Inicio, Rutas, Quedadas, Chat, Perfil
+│                 acceso/recuperar solo sin sesión; admin/* solo para administradores
+├── api/          Un módulo por recurso de la API; client.ts desenvuelve ApiResponse y renueva el token
+├── auth/         Tokens en SecureStore y AuthContext (sesión, perfil)
+├── components/   Tarjetas y vistas de dominio; ui/ con los componentes base
+├── lib/          Hooks (listas paginadas, carga, foco), formato, contadores de no leídos
+├── theme/        Colores (oscuro con acento naranja), tipografía y espaciado
+└── types/dto.ts  Espejo de los DTOs del backend
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Notas:
+
+- **Fechas**: el backend usa `LocalDateTime` sin zona en hora de España; la app las trata como hora
+  local (`lib/format.ts`: `fechaDeApi` / `fechaParaApi`).
+- **Chat y notificaciones** no tienen push: se consultan periódicamente mientras la app está abierta
+  (`lib/noLeidos.ts`, `components/ConversacionView.tsx`).
+- No usar `con` como nombre de carpeta o fichero: es un nombre reservado en Windows y Git no lo indexa.
+
+## Compilar (EAS)
+
+Perfiles en `eas.json`: `preview` genera un APK para instalar a mano y `production` un AAB para
+Google Play.
+
+```bash
+npm install -g eas-cli
+eas login
+eas init                      # vincula el proyecto con la cuenta de Expo (una sola vez)
+eas env:create --name GOOGLE_MAPS_API_KEY --value <clave> --environment production
+eas build -p android --profile preview      # APK
+eas build -p android --profile production   # AAB para Play Store
+```

@@ -26,9 +26,9 @@ moter@s/
 │   │   ├── mapper/        EntityDtoMapper
 │   │   ├── security/      JWT (access + refresh rotatorio), filtro, SecurityConfig
 │   │   └── config/        OpenAPI, WebConfig (uploads)
-│   ├── src/test/         59 tests (JUnit 5, @DataJpaTest con H2, Mockito, MockMvc)
+│   ├── src/test/         92 tests (JUnit 5, @DataJpaTest con H2, Mockito, MockMvc)
 │   └── deploy/           Artefactos y runbook de despliegue en VPS  →  deploy/DEPLOY.md
-└── frontend/             App Expo (SDK 57, expo-router)  —  PENDIENTE
+└── frontend/             App Android con Expo (SDK 57, expo-router)  →  frontend/README.md
 ```
 
 ## Stack
@@ -36,7 +36,7 @@ moter@s/
 - **Backend**: Spring Boot 4.1, Java 25, Spring Data JPA, Spring Security + JWT (jjwt 0.11),
   springdoc-openapi 3.1 (Swagger, solo en `dev`), Lombok.
 - **BBDD**: MySQL 8 (en local, MariaDB vía XAMPP también sirve).
-- **Frontend**: Expo / React Native, expo-router (sin empezar).
+- **Frontend**: Expo SDK 57 / React Native 0.86, expo-router, react-native-maps, SecureStore.
 
 ---
 
@@ -97,5 +97,10 @@ Redespliegue rápido: `cd backend && SSH_HOST=vps bash deploy/deploy.sh`.
 
 ## Frontend
 
-Sin empezar. Carpeta `frontend/` inicializada con Expo SDK 57 + expo-router. Antes de tocar
-código, leer los docs versionados: <https://docs.expo.dev/versions/v57.0.0/>.
+App Android: feed, rutas trazadas sobre el mapa con valoraciones, quedadas, amigos, chat,
+notificaciones y panel de administración. Arranque, variables de entorno y compilación con EAS en
+**[`frontend/README.md`](frontend/README.md)**.
+
+```bash
+cd frontend && npm install && npx expo start
+```
