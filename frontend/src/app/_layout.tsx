@@ -38,7 +38,7 @@ export default function RootLayout() {
  */
 function RootNavigator() {
   const theme = useTheme();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   useEffect(() => {
     if (!isLoading) SplashScreen.hideAsync();
@@ -69,6 +69,13 @@ function RootNavigator() {
           <Stack.Screen name="chat/usuario/[usuarioUuid]" />
           <Stack.Screen name="amigos" />
           <Stack.Screen name="buscar" />
+          <Stack.Screen name="notificaciones" />
+        </Stack.Protected>
+
+        {/* Solo administradores; el backend exige además ROLE_ADMIN en /api/admin. */}
+        <Stack.Protected guard={isAuthenticated && user?.rol === "admin"}>
+          <Stack.Screen name="admin/index" />
+          <Stack.Screen name="admin/usuarios" />
         </Stack.Protected>
 
         <Stack.Protected guard={!isAuthenticated}>

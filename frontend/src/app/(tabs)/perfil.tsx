@@ -38,6 +38,7 @@ export default function PerfilScreen() {
   if (!user) return null;
 
   const opciones: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; href?: Href; onPress?: () => void; danger?: boolean }[] = [
+    ...(user.rol === "admin" ? [{ icon: "shield" as const, label: "Administración", href: "/admin" as Href }] : []),
     { icon: "user", label: "Datos personales", href: "/cuenta/datos" },
     { icon: "lock", label: "Cambiar contraseña", href: "/cuenta/contrasena" },
     { icon: "log-out", label: "Cerrar sesión", onPress: confirmarLogout },
