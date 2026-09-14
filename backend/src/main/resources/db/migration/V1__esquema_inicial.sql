@@ -1,16 +1,12 @@
 -- ============================================================
--- RED MOTEROS - Base de datos para red social de moteros
--- Incluye: usuarios, motos, rutas con geolocalizacion, quedadas,
--- interacciones sociales, mensajeria privada y notificaciones
--- Motor: InnoDB | Charset: utf8mb4
+-- moter@s - Esquema inicial (red social de moteros)
+-- Usuarios, motos, rutas con geolocalizacion, quedadas, interacciones
+-- sociales, mensajeria privada y notificaciones. InnoDB, utf8mb4.
+--
+-- Las bases creadas antes de adoptar Flyway (produccion, XAMPP) ya tienen este
+-- esquema: Flyway las marca en la version 1 y no ejecuta este fichero.
+-- La base de datos se crea fuera (ver README).
 -- ============================================================
-
-DROP DATABASE IF EXISTS moteros;
-CREATE DATABASE moteros
-    CHARACTER SET utf8mb4
-    COLLATE utf8mb4_unicode_ci;
-
-USE moteros;
 
 -- ============================================================
 -- TABLA: usuarios

@@ -19,6 +19,10 @@ public interface RutaRepository extends JpaRepository<Ruta, Integer> {
 
     Optional<Ruta> findByUuid(String uuid);
 
+    /** Si ya hay una ruta con ese nombre y salida (ignora mayusculas). Evita que el scraper duplique. */
+    @Query("SELECT COUNT(r) > 0 FROM Ruta r WHERE LOWER(r.nombre) = LOWER(:nombre) AND LOWER(r.puntoInicio) = LOWER(:puntoInicio)")
+    boolean existeEnCatalogo(@Param("nombre") String nombre, @Param("puntoInicio") String puntoInicio);
+
     /** [Dificultad, Long] con el numero de rutas de cada dificultad. */
     @Query("SELECT r.dificultad, COUNT(r) FROM Ruta r GROUP BY r.dificultad")
     List<Object[]> contarPorDificultad();

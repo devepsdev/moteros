@@ -13,4 +13,7 @@ public interface AdminService {
     Page<UsuarioResponseDTO> listarUsuarios(String texto, Pageable pageable);
 
     UsuarioResponseDTO cambiarRol(String usuarioUuid, RolUsuario rol);
+
+    /** Da de baja (o reactiva) a un usuario. Al darlo de baja se revocan sus sesiones. */
+    UsuarioResponseDTO cambiarActivo(String usuarioUuid, boolean activo);
 }

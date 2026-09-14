@@ -51,4 +51,11 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponseDTO.success(
                 adminService.cambiarRol(uuid, rol), "Rol actualizado correctamente"));
     }
+
+    @PatchMapping("/usuarios/{uuid}/activo")
+    public ResponseEntity<ApiResponseDTO<UsuarioResponseDTO>> cambiarActivo(
+            @PathVariable String uuid, @RequestParam boolean activo) {
+        return ResponseEntity.ok(ApiResponseDTO.success(
+                adminService.cambiarActivo(uuid, activo), activo ? "Usuario reactivado" : "Usuario dado de baja"));
+    }
 }

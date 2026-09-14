@@ -13,6 +13,7 @@ import dev.deveps.moteros.entities.Ruta;
 import dev.deveps.moteros.entities.Usuario;
 import dev.deveps.moteros.entities.ValoracionRuta;
 import dev.deveps.moteros.entities.enums.Dificultad;
+import dev.deveps.moteros.entities.enums.RolUsuario;
 import dev.deveps.moteros.entities.enums.TipoNotificacion;
 import dev.deveps.moteros.entities.enums.TipoTerreno;
 import dev.deveps.moteros.exceptions.BadRequestException;
@@ -228,8 +229,10 @@ public class RutaServiceImpl implements RutaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Ruta no encontrada: " + uuid));
     }
 
+    /** Solo el creador o un administrador (que mantiene el catalogo desde el panel) pueden modificarla. */
     private void exigirCreador(Ruta ruta) {
-        if (!ruta.getCreador().getId().equals(usuarioAutenticado.obtenerIdUsuarioActual())) {
+        Usuario actual = usuarioAutenticado.obtenerUsuarioActual();
+        if (actual.getRol() != RolUsuario.admin && !ruta.getCreador().getId().equals(actual.getId())) {
             throw new BadRequestException("No puedes modificar una ruta que no has creado");
         }
     }

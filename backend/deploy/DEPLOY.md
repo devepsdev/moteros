@@ -45,7 +45,6 @@ cd backend
 cd ..
 ssh vps 'mkdir -p /tmp/moteros-deploy'
 scp backend/target/moteros-0.0.1-SNAPSHOT.jar  vps:/tmp/moteros.jar
-scp db/moteros.sql                              vps:/tmp/moteros.sql
 scp backend/deploy/*                            vps:/tmp/moteros-deploy/
 ```
 
@@ -61,8 +60,8 @@ ssh vps 'sudo bash /tmp/moteros-deploy/setup-vps.sh moteros.deveps.dev'
 |---|---|
 | 1 | Comprueba `java`; instala `python3-certbot-nginx` si falta |
 | 2 | Crea `/opt/apps/moteros/` y `/opt/apps/moteros/uploads/` (`ubuntu:ubuntu`) |
-| 3 | Carga `db/moteros.sql` en MySQL (solo si la BBDD `moteros` está vacía) |
-| 4 | Crea `moteros'@'localhost` con `SELECT/INSERT/UPDATE/DELETE` sobre `moteros.*` y contraseña aleatoria |
+| 3 | Crea la BBDD `moteros` vacía si no existe (las tablas las crea Flyway al arrancar) |
+| 4 | Crea `moteros'@'localhost` con todos los permisos sobre `moteros.*` (Flyway necesita DDL) y contraseña aleatoria |
 | 5 | Escribe `/opt/apps/moteros/.env` (600) con `DB_PASSWORD` y `JWT_SECRET` (`openssl rand -base64 64`) generados, CORS acotado al dominio |
 | 6 | Instala el jar, el unit `moteros.service`, `enable --now`, y espera el healthcheck local |
 | 7 | Vhost Nginx → `nginx -t` → reload |
@@ -104,7 +103,7 @@ cd backend && SSH_HOST=vps bash deploy/deploy.sh   # build + scp jar + systemctl
   (contraseña de aplicación de Gmail) y `sudo systemctl restart moteros`. Sin ellas la app arranca, pero los
   códigos no se envían (queda `Authentication failed` en el log). `setup-vps.sh` conserva estas líneas al re-ejecutarse.
 - **Swagger deshabilitado en `prod`** (`springdoc.*.enabled=false`). Para inspeccionar la API en el VPS, túnel SSH al 8080 con el perfil `dev`, o mirar en local. Healthcheck público: `GET /health`.
-- **`ddl-auto=validate`**: sin migraciones automáticas. Cambios de entidad → actualizar `db/moteros.sql` y aplicar el diff a mano.
+- **Esquema con Flyway**: las migraciones de `src/main/resources/db/migration` se aplican solas al arrancar; Hibernate va con `ddl-auto=validate`. Para cambiar el esquema, añadir un `V<n>__descripcion.sql` nuevo; nunca editar uno ya aplicado. La BBDD de producción (creada antes de Flyway) se marcó en la versión 1.
 - **Zona horaria**: la URL JDBC fija `serverTimezone=Europe/Madrid`.
 - **Rotar secretos** (`DB_PASSWORD` / `JWT_SECRET`) sin tocar Nginx ni el certificado:
   ```bash

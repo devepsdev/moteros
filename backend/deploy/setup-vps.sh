@@ -6,7 +6,7 @@
 #
 # Uso (en el VPS):
 #   sudo bash /tmp/moteros-deploy/setup-vps.sh moteros.deveps.dev
-# Requiere en /tmp:  moteros.jar  y  moteros.sql
+# Requiere en /tmp:  moteros.jar  (el esquema lo crea Flyway al arrancar la API)
 #
 set -euo pipefail
 
@@ -17,13 +17,11 @@ APP_DIR=/opt/apps/moteros
 ENV_FILE="$APP_DIR/.env"
 UPLOADS_DIR="$APP_DIR/uploads"
 SRC_JAR=/tmp/moteros.jar
-SRC_SQL=/tmp/moteros.sql
 DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 [[ -n "$DOMAIN" ]]     || { echo "ERROR: uso: sudo bash setup-vps.sh <dominio>" >&2; exit 1; }
 [[ $EUID -eq 0 ]]      || { echo "ERROR: ejecuta con sudo." >&2; exit 1; }
 [[ -f "$SRC_JAR" ]]    || { echo "ERROR: falta $SRC_JAR" >&2; exit 1; }
-[[ -f "$SRC_SQL" ]]    || { echo "ERROR: falta $SRC_SQL" >&2; exit 1; }
 
 echo "==> Dominio: $DOMAIN   ·   App: $APP_DIR   ·   Servicio como: $SVC_USER"
 
@@ -39,13 +37,8 @@ install -d -o "$SVC_USER" -g "$SVC_USER" -m 755 "$APP_DIR" "$UPLOADS_DIR"
 
 # ----------------------------------------------------------------------------
 echo "==> [3/8] Base de datos MySQL"
-DB_TABLES=$(mysql -N -B -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='moteros';")
-if [[ "$DB_TABLES" -gt 0 ]]; then
-  echo "    La BBDD 'moteros' ya tiene $DB_TABLES tablas. No se toca el esquema."
-else
-  echo "    Cargando esquema desde $SRC_SQL ..."
-  mysql < "$SRC_SQL"
-fi
+# Solo se crea la BBDD vacia: las tablas las crean (y actualizan) las migraciones de Flyway al arrancar.
+mysql -e "CREATE DATABASE IF NOT EXISTS moteros CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
 # ----------------------------------------------------------------------------
 echo "==> [4/8] Usuario de BBDD de la aplicacion"
@@ -59,7 +52,8 @@ fi
 mysql <<SQL
 CREATE USER IF NOT EXISTS 'moteros'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
 ALTER USER 'moteros'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
-GRANT SELECT, INSERT, UPDATE, DELETE ON moteros.* TO 'moteros'@'localhost';
+-- Flyway necesita DDL para aplicar migraciones (igual que rastrix): todos los permisos, solo sobre moteros.*
+GRANT ALL PRIVILEGES ON moteros.* TO 'moteros'@'localhost';
 FLUSH PRIVILEGES;
 SQL
 

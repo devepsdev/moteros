@@ -15,7 +15,6 @@ notificaciones. App Android con Expo sobre una API REST en Spring Boot.
 
 ```
 moter@s/
-├── db/moteros.sql        Esquema MySQL (15 tablas, InnoDB, utf8mb4). Sin datos de ejemplo.
 ├── backend/              API REST — Spring Boot 4 / Java 25 / Maven
 │   ├── src/main/java/dev/deveps/moteros/
 │   │   ├── entities/     Entidades JPA (+ entities/enums)
@@ -45,8 +44,8 @@ moter@s/
 Requisitos: JDK 25, MySQL/MariaDB en `localhost:3306`.
 
 ```bash
-# 1) Cargar el esquema
-mysql -u root < db/moteros.sql          # crea la BBDD 'moteros'
+# 1) Crear la BBDD vacía (las tablas las crea Flyway al arrancar)
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS moteros CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
 # 2) Ajustar credenciales si hace falta en backend/src/main/resources/application.properties
 #    (por defecto: usuario root, sin contraseña)

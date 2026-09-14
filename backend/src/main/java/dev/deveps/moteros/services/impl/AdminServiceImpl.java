@@ -1,5 +1,8 @@
 package dev.deveps.moteros.services.impl;
 
+import dev.deveps.moteros.entities.enums.EstadoSugerencia;
+import dev.deveps.moteros.repositories.SugerenciaRutaRepository;
+import dev.deveps.moteros.services.RefreshTokenService;
 import dev.deveps.moteros.dto.EstadisticasGlobalesDTO;
 import dev.deveps.moteros.dto.EstadisticasGlobalesDTO.AltasMesDTO;
 import dev.deveps.moteros.dto.RutaSummaryDTO;
@@ -48,6 +51,8 @@ public class AdminServiceImpl implements AdminService {
     private final ComentarioRepository comentarioRepository;
     private final ValoracionRutaRepository valoracionRutaRepository;
     private final AmistadRepository amistadRepository;
+    private final SugerenciaRutaRepository sugerenciaRutaRepository;
+    private final RefreshTokenService refreshTokenService;
     private final EntityDtoMapper mapper;
 
     @Override
@@ -64,6 +69,7 @@ public class AdminServiceImpl implements AdminService {
                 .comentarios(comentarioRepository.count())
                 .valoraciones(valoracionRutaRepository.count())
                 .amistadesAceptadas(amistadRepository.countByEstado(EstadoAmistad.aceptada))
+                .sugerenciasPendientes(sugerenciaRutaRepository.countByEstado(EstadoSugerencia.pendiente))
                 .rutasPorDificultad(aMapa(rutaRepository.contarPorDificultad()))
                 .rutasPorTerreno(aMapa(rutaRepository.contarPorTerreno()))
                 .motosPorTipo(aMapa(motoRepository.contarPorTipo()))
@@ -85,13 +91,30 @@ public class AdminServiceImpl implements AdminService {
         Usuario usuario = usuarioRepository.findByUuid(usuarioUuid)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + usuarioUuid));
 
-        boolean degradaAdmin = usuario.getRol() == RolUsuario.admin && rol == RolUsuario.user;
+        boolean degradaAdmin = usuario.getRol() == RolUsuario.admin && rol != RolUsuario.admin;
         if (degradaAdmin && usuarioRepository.countByRol(RolUsuario.admin) <= 1) {
             throw new BadRequestException("No puedes dejar la plataforma sin administradores");
         }
 
         usuario.setRol(rol);
         Usuario guardado = usuarioRepository.save(usuario);
+        return mapper.usuarioResponse(guardado, null, null, null);
+    }
+
+    @Override
+    @Transactional
+    public UsuarioResponseDTO cambiarActivo(String usuarioUuid, boolean activo) {
+        Usuario usuario = usuarioRepository.findByUuid(usuarioUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + usuarioUuid));
+        if (!activo && usuario.getRol() == RolUsuario.admin) {
+            throw new BadRequestException("No se puede dar de baja a un administrador; quitale antes el rol");
+        }
+        usuario.setActivo(activo);
+        Usuario guardado = usuarioRepository.save(usuario);
+        if (!activo) {
+            // Sin refresh tokens no puede renovar la sesion: queda fuera en cuanto caduque el access token.
+            refreshTokenService.revocarTodos(guardado.getId());
+        }
         return mapper.usuarioResponse(guardado, null, null, null);
     }
 

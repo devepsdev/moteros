@@ -85,6 +85,8 @@ public class SecurityConfig {
                         // Imagenes subidas: lectura publica (la subida sigue requiriendo token)
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // Sugerencias de rutas: solo la cuenta del scraper (y admin, para probar)
+                        .requestMatchers(HttpMethod.POST, "/api/sugerencias-ruta").hasAnyRole("SCRAPER", "ADMIN")
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
