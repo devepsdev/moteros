@@ -1,0 +1,63 @@
+# Páginas que el scraper revisa en cada pasada.
+#
+# Cada fuente es una página que describe una o varias rutas en moto con un recorrido
+# identificable (salida, llegada y lugares de paso).
+#
+# Campos:
+#   nombre     Nombre corto para los logs.
+#   url        Página a descargar.
+#   provincia  Opcional. Ayuda a ubicar los pueblos si la página no la indica.
+#
+# Si una página no cambia de una pasada a otra, no se vuelve a analizar.
+#
+# Comprobadas el 2026-09-14: responden, robots.txt permite leerlas y el texto de las
+# rutas está en el HTML (el scraper no ejecuta JavaScript). Las de Turismo Burgos indican
+# salida, llegada, pueblos de paso en orden y distancia. Se descartaron vivelamoto.org
+# (páginas retiradas) y los viajes organizados con fechas y precio.
+
+sources:
+  # ------------------------------------------------ oficiales: Turismo Burgos (Sodebur)
+  - nombre: Burgos · Viaje al centro de la Sierra
+    url: https://turismoburgos.org/ruta-en-moto-por-la-sierra-de-la-demanda/
+    provincia: Burgos
+
+  - nombre: Burgos · Del origen del hombre al origen del castellano
+    url: https://turismoburgos.org/ruta-en-moto-del-origen-del-hombre-al-origen-del-castellano/
+    provincia: Burgos
+
+  - nombre: Burgos · De las huellas de Castilla al clamor del Ebro
+    url: https://turismoburgos.org/de-las-huellas-de-castilla-al-clamor-del-ebro/
+    provincia: Burgos
+
+  - nombre: Burgos · Maravillas naturales en ruta al Camino
+    url: https://turismoburgos.org/maravillas-naturales-en-ruta-al-camino/
+    provincia: Burgos
+
+  - nombre: Burgos · Caminos ducales y joyas silenciosas
+    url: https://turismoburgos.org/caminos-ducales-y-joyas-silenciosas/
+    provincia: Burgos
+
+  - nombre: Burgos · De Roma al vino eterno
+    url: https://turismoburgos.org/de-roma-al-vino-eterno/
+    provincia: Burgos
+
+  # ------------------------------------------------ revistas y blogs de mototurismo
+  - nombre: Motoviajeros · 10 rutas por España
+    url: https://motoviajeros.es/10-rutas-en-moto-por-espana/
+
+  - nombre: Moto1Pro · Rutas moteras por España
+    url: https://www.moto1pro.com/reportajes-motos/rutas-moteras-por-espana
+
+  - nombre: Motocard · Rutas por España poco conocidas
+    url: https://www.motocard.com/blog/planeta-motero/rutas/rutas-en-moto-por-espana-escapate-de-la-ciudad/
+
+  - nombre: Komobi · Rutas por Cataluña
+    url: https://www.komobimoto.com/rutas-en-moto-por-cataluna/
+
+  - nombre: Casa Manolón · Occidente de Asturias
+    url: https://casamanolon.es/las-mejores-rutas-moteras-del-occidente-de-asturias/
+    provincia: Asturias
+
+  - nombre: Patou Pallars · Pirineo catalán
+    url: https://patoupallars.com/es/ruta-en-moto-por-el-pirineo-catalan/
+    provincia: Lleida

@@ -28,6 +28,7 @@ moter@s/
 │   ├── src/test/         92 tests (JUnit 5, @DataJpaTest con H2, Mockito, MockMvc)
 │   └── deploy/           Artefactos y runbook de despliegue en VPS  →  deploy/DEPLOY.md
 ├── admin/                Panel web de administración (Angular 21 + Tailwind 4) → moteros.deveps.dev/admin/
+├── scraper/              Agente en Python que propone rutas a la bandeja del panel → scraper/README.md
 └── frontend/             App Android con Expo (SDK 57, expo-router)  →  frontend/README.md
 ```
 
@@ -115,6 +116,14 @@ npm start          # http://localhost:4200 — proxy.conf.json reenvía /api al 
 
 Despliegue: `SSH_HOST=vps bash backend/deploy/deploy-admin.sh` (compila, sube a
 `/var/www/moteros-admin` y añade el bloque `/admin/` al vhost de Nginx si falta).
+
+## Scraper
+
+Agente en Python (`scraper/`) que corre en la Orange Pi una vez por semana, como el de rastrix.
+Lee las páginas de `scraper/sources.yaml`, salta las que no han cambiado, extrae las rutas en
+moto con DeepSeek, ubica los lugares de paso con OpenStreetMap y las envía a la bandeja de
+sugerencias del panel. No publica nada por su cuenta. Detalles, instalación y pruebas en
+[scraper/README.md](scraper/README.md).
 
 ## Frontend
 
