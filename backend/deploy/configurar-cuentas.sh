@@ -57,7 +57,8 @@ preguntar_secreto() {  # preguntar_secreto VARIABLE "Pregunta"
   local respuesta
   read -r -s -p "$2: " respuesta
   echo
-  printf -v "$1" '%s' "$respuesta"
+  # Al pegar en el terminal de Windows puede colarse un \r al final.
+  printf -v "$1" '%s' "${respuesta//$'\r'/}"
 }
 
 # systemd lee el .env de la API: entre comillas dobles no expande "$", pero sí interpreta
@@ -97,8 +98,12 @@ valida_para_env "$ADMIN_NOMBRE_COMPLETO" || fallo 'el nombre no puede contener c
 paso "Datos del bot del scraper"
 preguntar BOT_USUARIO "Nombre de usuario del bot" "scraper"
 preguntar BOT_EMAIL "Email del bot (no necesita existir como buzón)" "scraper@deveps.dev"
+[[ "$BOT_USUARIO" =~ ^[A-Za-z0-9_.-]{3,50}$ ]] || fallo "el nombre de usuario del bot solo puede tener letras, números, _ . - (3-50)"
 preguntar_secreto DEEPSEEK_API_KEY "Clave de la API de DeepSeek"
+# Una clave nunca lleva espacios: se quitan los que se cuelen al pegarla.
+DEEPSEEK_API_KEY="${DEEPSEEK_API_KEY//[[:space:]]/}"
 [[ -n "$DEEPSEEK_API_KEY" ]] || fallo "la clave de DeepSeek es obligatoria"
+[[ "$DEEPSEEK_API_KEY" == sk-* ]] || echo "  AVISO: las claves de DeepSeek suelen empezar por «sk-»; se comprobará en el paso 4."
 preguntar DEEPSEEK_MODEL "Modelo de DeepSeek" "deepseek-flash"
 # Contraseña aleatoria: solo la usa el scraper y queda guardada en su .env de la Orange Pi.
 BOT_PASSWORD="$(py -c 'import secrets; print(secrets.token_urlsafe(24))')"
@@ -189,8 +194,28 @@ PY
 case "$REGISTRO" in
   creada) echo "    Cuenta $BOT_USUARIO creada con una contraseña aleatoria." ;;
   existe)
-    echo "    La cuenta $BOT_USUARIO ya existe, así que no conozco su contraseña."
-    preguntar_secreto BOT_PASSWORD "Contraseña actual del bot (la del .env de la Orange Pi)"
+    # Su contraseña aleatoria solo existió durante la ejecución anterior. La API no permite
+    # cambiar la contraseña de otra cuenta, así que se recrea (solo si es la cuenta del bot).
+    echo "    La cuenta $BOT_USUARIO ya existe y su contraseña aleatoria no se conserva."
+    preguntar RECREAR "¿Borrarla y crearla de nuevo con otra contraseña? Solo se hace si tiene rol scraper (s/N)" "N"
+    [[ "$RECREAR" =~ ^[sS]$ ]] || fallo "no se puede continuar sin la contraseña del bot"
+    BORRADAS="$(ssh "$VPS" "sudo mysql -N -B -e \"DELETE FROM moteros.usuarios WHERE nombre_usuario='$BOT_USUARIO' AND rol='scraper'; SELECT ROW_COUNT();\"" | tr -d '\r')"
+    [[ "$BORRADAS" == "1" ]] || fallo "la cuenta $BOT_USUARIO no tiene rol scraper; no se ha borrado nada"
+    REGISTRO="$(API_URL="$API_URL" U="$BOT_USUARIO" E="$BOT_EMAIL" P="$BOT_PASSWORD" py - <<'PY'
+import json, os, urllib.error, urllib.request
+body = json.dumps({"nombreUsuario": os.environ["U"], "nombreCompleto": "Scraper de rutas",
+                   "email": os.environ["E"], "password": os.environ["P"]}).encode()
+req = urllib.request.Request(os.environ["API_URL"] + "/api/auth/registro", data=body,
+                             headers={"Content-Type": "application/json"}, method="POST")
+try:
+    urllib.request.urlopen(req, timeout=30)
+    print("creada")
+except urllib.error.HTTPError as e:
+    print(f"error {e.code}: {e.read().decode(errors='replace')[:200]}")
+PY
+)"
+    [[ "$REGISTRO" == "creada" ]] || fallo "no se ha podido recrear la cuenta del bot: $REGISTRO"
+    echo "    Cuenta $BOT_USUARIO recreada con una contraseña aleatoria nueva."
     ;;
   *) fallo "no se ha podido crear la cuenta del bot: $REGISTRO" ;;
 esac
@@ -223,9 +248,15 @@ import configure as c
 valores = json.load(sys.stdin)
 for clave, valor in c.read_env(c.ENV_FILE).items():
     valores.setdefault(clave, valor)
+def comprobar(nombre, funcion, *args):
+    # Cualquier error inesperado se muestra como fallo: el .env se guarda igualmente.
+    try:
+        return (nombre, *funcion(*args))
+    except Exception as error:
+        return (nombre, False, type(error).__name__ + \": \" + str(error))
 comprobaciones = [
-    (\"API de moter@s\", *c.check_moteros(valores[\"MOTEROS_API_URL\"], valores[\"MOTEROS_USUARIO\"], valores[\"MOTEROS_PASSWORD\"])),
-    (\"DeepSeek\", *c.check_deepseek(valores[\"DEEPSEEK_API_KEY\"], valores[\"DEEPSEEK_MODEL\"])),
+    comprobar(\"API de moter@s\", c.check_moteros, valores[\"MOTEROS_API_URL\"], valores[\"MOTEROS_USUARIO\"], valores[\"MOTEROS_PASSWORD\"]),
+    comprobar(\"DeepSeek\", c.check_deepseek, valores[\"DEEPSEEK_API_KEY\"], valores[\"DEEPSEEK_MODEL\"]),
 ]
 for nombre, ok, mensaje in comprobaciones:
     print(\"    \" + (\"OK   \" if ok else \"FALLO\") + \" \" + nombre + \": \" + mensaje)
