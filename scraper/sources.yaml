@@ -15,7 +15,8 @@
 # salida, llegada, pueblos de paso en orden y distancia. Se descartaron vivelamoto.org
 # (páginas retiradas) y los viajes organizados con fechas y precio. Retiradas tras la primera
 # prueba desde la Orange Pi (2026-09-15): Motocard y Komobi responden 403 al scraper, y la de
-# Patou Pallars no describe ninguna ruta con recorrido.
+# Patou Pallars no describe ninguna ruta con recorrido. Motoviajeros solo da rutas por regiones
+# ("Asturias → Andalucía") y todas se descartan.
 
 sources:
   # ------------------------------------------------ oficiales: Turismo Burgos (Sodebur)
@@ -44,9 +45,6 @@ sources:
     provincia: Burgos
 
   # ------------------------------------------------ revistas y blogs de mototurismo
-  - nombre: Motoviajeros · 10 rutas por España
-    url: https://motoviajeros.es/10-rutas-en-moto-por-espana/
-
   - nombre: Moto1Pro · Rutas moteras por España
     url: https://www.moto1pro.com/reportajes-motos/rutas-moteras-por-espana
 
