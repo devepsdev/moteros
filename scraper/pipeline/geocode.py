@@ -1,9 +1,16 @@
+import math
+import statistics
 import time
 
 import requests
 
 from core.config import NOMINATIM_DELAY_SECONDS, NOMINATIM_URL, USER_AGENT
 from core.logger import logger
+
+# Un lugar a más de esta distancia del centro del recorrido, y muy lejos comparado con el
+# resto de lugares, casi seguro es un homónimo de otra provincia: mejor sin coordenadas.
+MIN_KM_ATIPICO = 60
+FACTOR_ATIPICO = 2.5
 
 
 class Geocoder:
@@ -59,12 +66,40 @@ def add_coordinates(ruta: dict, geocoder: Geocoder) -> dict:
     """Sugerencia lista para la API: los lugares de paso pasan a ser puntos con coordenadas si se encontraron."""
     puntos = []
     for lugar in ruta["lugares"]:
-        coordenadas = geocoder.locate(lugar, ruta.get("provincia"))
+        coordenadas = geocoder.locate(lugar["nombre"], lugar.get("provincia"))
         puntos.append({
-            "nombre": lugar,
+            "nombre": lugar["nombre"],
             "latitud": coordenadas[0] if coordenadas else None,
             "longitud": coordenadas[1] if coordenadas else None,
         })
-    sugerencia = {k: v for k, v in ruta.items() if k not in ("lugares", "provincia")}
+    descartar_atipicos(puntos, ruta["nombre"])
+    sugerencia = {k: v for k, v in ruta.items() if k != "lugares"}
     sugerencia["puntos"] = puntos
     return sugerencia
+
+
+def descartar_atipicos(puntos: list[dict], nombre_ruta: str = "") -> None:
+    """
+    Quita las coordenadas de los lugares que caen lejísimos del resto del recorrido. Pasa con
+    nombres repetidos en varias provincias («Riaño», «La Vega») cuando la provincia no ayuda.
+    El lugar se conserva sin coordenadas para que el administrador lo marque en el mapa.
+    """
+    ubicados = [p for p in puntos if p["latitud"] is not None]
+    if len(ubicados) < 3:
+        return
+    centro = (statistics.median(p["latitud"] for p in ubicados), statistics.median(p["longitud"] for p in ubicados))
+    distancias = [_km(centro, (p["latitud"], p["longitud"])) for p in ubicados]
+    tipica = statistics.median(distancias)
+    umbral = max(MIN_KM_ATIPICO, FACTOR_ATIPICO * tipica)
+    for punto, distancia in zip(ubicados, distancias):
+        if distancia > umbral:
+            logger.info("  ? «%s» en «%s» queda a %.0f km del resto: se deja sin coordenadas", punto["nombre"], nombre_ruta, distancia)
+            punto["latitud"] = punto["longitud"] = None
+
+
+def _km(a: tuple[float, float], b: tuple[float, float]) -> float:
+    """Distancia en km entre dos coordenadas (Haversine)."""
+    rad = math.radians
+    d_lat, d_lon = rad(b[0] - a[0]), rad(b[1] - a[1])
+    h = math.sin(d_lat / 2) ** 2 + math.cos(rad(a[0])) * math.cos(rad(b[0])) * math.sin(d_lon / 2) ** 2
+    return 2 * 6371 * math.asin(math.sqrt(h))

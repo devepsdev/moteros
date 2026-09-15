@@ -1,4 +1,4 @@
-from pipeline.geocode import Geocoder, add_coordinates
+from pipeline.geocode import Geocoder, add_coordinates, descartar_atipicos
 from pipeline.state import State
 
 
@@ -40,15 +40,39 @@ def test_cachea_resultados_y_tambien_los_no_encontrados():
     assert session.queries == ["Roa, Burgos", "Nolugar, Burgos", "Nolugar"]
 
 
-def test_add_coordinates_convierte_lugares_en_puntos():
-    session = FakeSession({"A, Burgos": (1.0, 2.0)})
+def test_add_coordinates_busca_cada_lugar_con_su_provincia():
+    session = FakeSession({"Úbeda, Jaén": (38.01, -3.37), "Baza, Granada": (37.49, -2.77)})
     geocoder = Geocoder(State(":memory:"), session=session, delay=0)
-    ruta = {"nombre": "R", "puntoInicio": "A", "puntoFin": "B", "provincia": "Burgos", "lugares": ["A", "B"], "urlFuente": "https://x"}
+    ruta = {"nombre": "R", "puntoInicio": "Úbeda", "puntoFin": "Baza", "urlFuente": "https://x",
+            "lugares": [{"nombre": "Úbeda", "provincia": "Jaén"}, {"nombre": "Baza", "provincia": "Granada"}]}
 
     sugerencia = add_coordinates(ruta, geocoder)
 
-    assert "lugares" not in sugerencia and "provincia" not in sugerencia
+    assert "lugares" not in sugerencia
+    assert session.queries == ["Úbeda, Jaén", "Baza, Granada"]
     assert sugerencia["puntos"] == [
-        {"nombre": "A", "latitud": 1.0, "longitud": 2.0},
-        {"nombre": "B", "latitud": None, "longitud": None},
+        {"nombre": "Úbeda", "latitud": 38.01, "longitud": -3.37},
+        {"nombre": "Baza", "latitud": 37.49, "longitud": -2.77},
     ]
+
+
+def test_descarta_coordenadas_de_un_homonimo_muy_lejano():
+    # Recorrido por Picos de Europa con un «Potes» situado por error en el oeste de Asturias.
+    puntos = [
+        {"nombre": "Cangas de Onís", "latitud": 43.35, "longitud": -5.13},
+        {"nombre": "Riaño", "latitud": 42.97, "longitud": -5.02},
+        {"nombre": "Potes", "latitud": 43.13, "longitud": -6.35},
+        {"nombre": "Panes", "latitud": 43.32, "longitud": -4.58},
+        {"nombre": "Unquera", "latitud": 43.37, "longitud": -4.51},
+    ]
+    descartar_atipicos(puntos)
+
+    assert puntos[2]["latitud"] is None and puntos[2]["longitud"] is None
+    assert all(p["latitud"] is not None for i, p in enumerate(puntos) if i != 2)
+
+
+def test_no_toca_recorridos_largos_pero_coherentes():
+    # Una ruta Burgos → Almería es larga, pero sus puntos siguen una línea sin saltos raros.
+    puntos = [{"nombre": str(i), "latitud": 42.3 - i * 0.5, "longitud": -3.7 + i * 0.15} for i in range(10)]
+    descartar_atipicos(puntos)
+    assert all(p["latitud"] is not None for p in puntos)

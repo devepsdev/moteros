@@ -13,7 +13,9 @@
 # Comprobadas el 2026-09-14: responden, robots.txt permite leerlas y el texto de las
 # rutas está en el HTML (el scraper no ejecuta JavaScript). Las de Turismo Burgos indican
 # salida, llegada, pueblos de paso en orden y distancia. Se descartaron vivelamoto.org
-# (páginas retiradas) y los viajes organizados con fechas y precio.
+# (páginas retiradas) y los viajes organizados con fechas y precio. Retiradas tras la primera
+# prueba desde la Orange Pi (2026-09-15): Motocard y Komobi responden 403 al scraper, y la de
+# Patou Pallars no describe ninguna ruta con recorrido.
 
 sources:
   # ------------------------------------------------ oficiales: Turismo Burgos (Sodebur)
@@ -48,16 +50,6 @@ sources:
   - nombre: Moto1Pro · Rutas moteras por España
     url: https://www.moto1pro.com/reportajes-motos/rutas-moteras-por-espana
 
-  - nombre: Motocard · Rutas por España poco conocidas
-    url: https://www.motocard.com/blog/planeta-motero/rutas/rutas-en-moto-por-espana-escapate-de-la-ciudad/
-
-  - nombre: Komobi · Rutas por Cataluña
-    url: https://www.komobimoto.com/rutas-en-moto-por-cataluna/
-
   - nombre: Casa Manolón · Occidente de Asturias
     url: https://casamanolon.es/las-mejores-rutas-moteras-del-occidente-de-asturias/
     provincia: Asturias
-
-  - nombre: Patou Pallars · Pirineo catalán
-    url: https://patoupallars.com/es/ruta-en-moto-por-el-pirineo-catalan/
-    provincia: Lleida

@@ -5,8 +5,8 @@ from services.moteros_api import SubmitResult
 
 SOURCE = {"nombre": "Rutas", "url": "https://ejemplo.test/rutas"}
 RUTAS = [
-    {"nombre": "Ruta A", "puntoInicio": "A", "puntoFin": "B", "lugaresDePaso": ["A", "B"]},
-    {"nombre": "Ruta B", "puntoInicio": "C", "puntoFin": "D"},
+    {"nombre": "Ruta A", "puntoInicio": "A", "puntoFin": "B", "lugaresDePaso": ["A", "M", "B"]},
+    {"nombre": "Ruta B", "puntoInicio": "C", "puntoFin": "D", "lugaresDePaso": ["C", "E", "D"]},
 ]
 
 
