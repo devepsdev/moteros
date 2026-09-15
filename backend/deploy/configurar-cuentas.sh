@@ -39,6 +39,12 @@ fallo() { echo "ERROR: $*" >&2; exit 1; }
 paso() { echo; echo "==> $*"; }
 
 [[ -n "$PYTHON" ]] || fallo "hace falta Python en el PC"
+
+# El Python de Windows escribe los saltos de línea como \r\n y Bash no quita el \r: sin esto
+# "admin" llegaría como "admin\r" y la contraseña del bot llevaría un \r al final.
+py() {
+  "$PYTHON" "$@" | tr -d '\r'
+}
 command -v ssh >/dev/null || fallo "hace falta ssh"
 
 preguntar() {          # preguntar VARIABLE "Pregunta" "valor por defecto"
@@ -95,7 +101,7 @@ preguntar_secreto DEEPSEEK_API_KEY "Clave de la API de DeepSeek"
 [[ -n "$DEEPSEEK_API_KEY" ]] || fallo "la clave de DeepSeek es obligatoria"
 preguntar DEEPSEEK_MODEL "Modelo de DeepSeek" "deepseek-flash"
 # Contraseña aleatoria: solo la usa el scraper y queda guardada en su .env de la Orange Pi.
-BOT_PASSWORD="$("$PYTHON" -c 'import secrets; print(secrets.token_urlsafe(24))')"
+BOT_PASSWORD="$(py -c 'import secrets; print(secrets.token_urlsafe(24))')"
 
 # ----------------------------------------------------------------------------------------
 paso "1/4 Base de datos y API en el VPS"
@@ -143,7 +149,7 @@ REMOTO
 
 # Llamadas a la API desde el PC. Los datos van en variables de entorno del proceso de Python.
 api_login() {  # api_login IDENTIFICADOR PASSWORD -> imprime "token uuid rol"
-  API_URL="$API_URL" IDENT="$1" PASS="$2" "$PYTHON" - <<'PY'
+  API_URL="$API_URL" IDENT="$1" PASS="$2" py - <<'PY'
 import json, os, sys, urllib.error, urllib.request
 body = json.dumps({"identificador": os.environ["IDENT"], "password": os.environ["PASS"]}).encode()
 req = urllib.request.Request(os.environ["API_URL"] + "/api/auth/login", data=body,
@@ -167,7 +173,7 @@ echo "    ADMIN_PASSWORD borrada del .env del VPS."
 
 # ----------------------------------------------------------------------------------------
 paso "3/4 Cuenta del bot"
-REGISTRO="$(API_URL="$API_URL" U="$BOT_USUARIO" E="$BOT_EMAIL" P="$BOT_PASSWORD" "$PYTHON" - <<'PY'
+REGISTRO="$(API_URL="$API_URL" U="$BOT_USUARIO" E="$BOT_EMAIL" P="$BOT_PASSWORD" py - <<'PY'
 import json, os, urllib.error, urllib.request
 body = json.dumps({"nombreUsuario": os.environ["U"], "nombreCompleto": "Scraper de rutas",
                    "email": os.environ["E"], "password": os.environ["P"]}).encode()
@@ -192,7 +198,7 @@ esac
 read -r _ BOT_UUID BOT_ROL < <(api_login "$BOT_USUARIO" "$BOT_PASSWORD") || true
 [[ -n "${BOT_UUID:-}" ]] || fallo "la cuenta $BOT_USUARIO no puede entrar (¿contraseña incorrecta?)"
 if [[ "$BOT_ROL" != "scraper" ]]; then
-  API_URL="$API_URL" TOKEN="$ADMIN_TOKEN" UUID="$BOT_UUID" "$PYTHON" - <<'PY'
+  API_URL="$API_URL" TOKEN="$ADMIN_TOKEN" UUID="$BOT_UUID" py - <<'PY'
 import os, urllib.request
 url = f"{os.environ['API_URL']}/api/admin/usuarios/{os.environ['UUID']}/rol?rol=scraper"
 req = urllib.request.Request(url, headers={"Authorization": "Bearer " + os.environ["TOKEN"]}, method="PATCH")
@@ -205,7 +211,7 @@ echo "    $BOT_USUARIO tiene rol scraper."
 paso "4/4 Configuración del scraper en la Orange Pi"
 # configure.py ya sabe escribir el .env con permisos 600 y comprobar la cuenta y la clave:
 # se reutiliza leyendo los valores de la entrada estándar.
-API_URL="$API_URL" U="$BOT_USUARIO" P="$BOT_PASSWORD" K="$DEEPSEEK_API_KEY" M="$DEEPSEEK_MODEL" "$PYTHON" -c '
+API_URL="$API_URL" U="$BOT_USUARIO" P="$BOT_PASSWORD" K="$DEEPSEEK_API_KEY" M="$DEEPSEEK_MODEL" py -c '
 import json, os
 print(json.dumps({"MOTEROS_API_URL": os.environ["API_URL"], "MOTEROS_USUARIO": os.environ["U"],
   "MOTEROS_PASSWORD": os.environ["P"], "DEEPSEEK_API_KEY": os.environ["K"],
