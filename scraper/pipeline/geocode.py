@@ -7,15 +7,23 @@ import requests
 from core.config import NOMINATIM_DELAY_SECONDS, NOMINATIM_URL, USER_AGENT
 from core.logger import logger
 
-# Un lugar a más de esta distancia del centro del recorrido, y muy lejos comparado con el
-# resto de lugares, casi seguro es un homónimo de otra provincia: mejor sin coordenadas.
-MIN_KM_ATIPICO = 60
-FACTOR_ATIPICO = 2.5
+# Países donde se buscan los lugares: las rutas del Pirineo cruzan a Francia y Andorra
+# (Catalunya Nord, Vall d'Aran) y las del oeste, a Portugal.
+PAISES = "es,fr,ad,pt"
+
+# Detección de homónimos lejanos (ver descartar_atipicos). Un lugar intermedio es sospechoso si
+# pasar por él supone un rodeo de más de MIN_KM_RODEO y de más de FACTOR_RODEO veces ir directo
+# entre sus vecinos; un extremo, si queda muy lejos de su único vecino comparado con los tramos
+# normales de la ruta. Los mínimos en km evitan marcar rutas cortas y reviradas.
+MIN_KM_RODEO = 60
+FACTOR_RODEO = 2
+MIN_KM_EXTREMO = 150
+FACTOR_EXTREMO = 5
 
 
 class Geocoder:
     """
-    Coordenadas de pueblos y lugares con Nominatim (OpenStreetMap), limitado a España.
+    Coordenadas de pueblos y lugares con Nominatim (OpenStreetMap), en España y países vecinos.
     Cumple su política de uso: User-Agent propio, como mucho una petición por segundo y
     resultados cacheados (también los que no se encuentran) en el estado del scraper.
     """
@@ -48,7 +56,7 @@ class Geocoder:
         try:
             response = self.session.get(
                 NOMINATIM_URL,
-                params={"q": consulta, "format": "jsonv2", "limit": 1, "countrycodes": "es", "accept-language": "es"},
+                params={"q": consulta, "format": "jsonv2", "limit": 1, "countrycodes": PAISES, "accept-language": "es"},
                 timeout=20,
             )
             response.raise_for_status()
@@ -80,21 +88,40 @@ def add_coordinates(ruta: dict, geocoder: Geocoder) -> dict:
 
 def descartar_atipicos(puntos: list[dict], nombre_ruta: str = "") -> None:
     """
-    Quita las coordenadas de los lugares que caen lejísimos del resto del recorrido. Pasa con
-    nombres repetidos en varias provincias («Riaño», «La Vega») cuando la provincia no ayuda.
+    Quita las coordenadas de los lugares que no encajan en el recorrido. Pasa con nombres repetidos
+    en varios sitios («Riaño», «Potes», «Arles») cuando la provincia no basta para distinguirlos.
     El lugar se conserva sin coordenadas para que el administrador lo marque en el mapa.
+    Limitación conocida: dos homónimos seguidos y cercanos entre sí no se detectan.
+
+    No se compara con el centro del recorrido: en una ruta larga y lineal (Tortosa → Barcelona)
+    la salida y la llegada están lógicamente lejos del centro. Se compara cada lugar con sus
+    vecinos en el orden de la ruta, tomando como referencia el tramo típico entre lugares.
     """
     ubicados = [p for p in puntos if p["latitud"] is not None]
     if len(ubicados) < 3:
         return
-    centro = (statistics.median(p["latitud"] for p in ubicados), statistics.median(p["longitud"] for p in ubicados))
-    distancias = [_km(centro, (p["latitud"], p["longitud"])) for p in ubicados]
-    tipica = statistics.median(distancias)
-    umbral = max(MIN_KM_ATIPICO, FACTOR_ATIPICO * tipica)
-    for punto, distancia in zip(ubicados, distancias):
-        if distancia > umbral:
-            logger.info("  ? «%s» en «%s» queda a %.0f km del resto: se deja sin coordenadas", punto["nombre"], nombre_ruta, distancia)
-            punto["latitud"] = punto["longitud"] = None
+    coord = [(p["latitud"], p["longitud"]) for p in ubicados]
+    tramos = [_km(coord[i - 1], coord[i]) for i in range(1, len(coord))]
+    tipico = statistics.median(tramos)
+
+    sospechosos = []
+    for i, punto in enumerate(ubicados):
+        if i == 0 or i == len(ubicados) - 1:
+            vecino = coord[1] if i == 0 else coord[-2]
+            distancia = _km(coord[i], vecino)
+            if distancia > max(MIN_KM_EXTREMO, FACTOR_EXTREMO * tipico):
+                sospechosos.append((punto, distancia))
+            continue
+        anterior, siguiente = coord[i - 1], coord[i + 1]
+        ida, vuelta, directo = _km(anterior, coord[i]), _km(coord[i], siguiente), _km(anterior, siguiente)
+        rodeo = ida + vuelta - directo
+        if rodeo > max(MIN_KM_RODEO, FACTOR_RODEO * directo) and min(ida, vuelta) > MIN_KM_RODEO / 2:
+            sospechosos.append((punto, min(ida, vuelta)))
+
+    # Se decide con todos los datos antes de borrar nada: quitar uno cambiaría los vecinos del siguiente.
+    for punto, distancia in sospechosos:
+        logger.info("  ? «%s» en «%s» queda a %.0f km del recorrido: se deja sin coordenadas", punto["nombre"], nombre_ruta, distancia)
+        punto["latitud"] = punto["longitud"] = None
 
 
 def _km(a: tuple[float, float], b: tuple[float, float]) -> float:

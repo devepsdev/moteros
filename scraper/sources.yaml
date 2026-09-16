@@ -21,7 +21,7 @@
 # Catalunya (2026-09-16): las fichas de Catalunya en Moto enlazan el recorrido en GPX o KML alojado
 # en Google Drive; el scraper guarda el enlace (Drive no permite la descarga a bots) y se importa
 # en el panel. La Guia Vial queda fuera hasta pedirles permiso: es un proyecto personal con miles
-# de páginas.
+# de páginas. Catalunya.com se retiró tras la primera pasada: sus 7 rutas son zonas sin recorrido.
 
 sources:
   # ------------------------------------------------ oficiales: Turismo Burgos (Sodebur)
@@ -98,9 +98,6 @@ sources:
     url: https://catalunyaenmoto.com/es/donde-ir-en-moto/rutas-en-moto/vuelta-a-catalunya-en-moto-los-pirineos/
 
   # ------------------------------------------------ artículos con varias rutas por Catalunya
-  - nombre: Catalunya.com · 7 rutas en moto
-    url: https://www.catalunya.com/en/continguts/article/7-scenic-motorbike-routes-catalonia-26-1-272
-
   - nombre: Motociclismo · Rutas por Cataluña
     url: https://www.motociclismo.es/rutas/rutas-moto-cataluna-nzm_247884_102.html
 
