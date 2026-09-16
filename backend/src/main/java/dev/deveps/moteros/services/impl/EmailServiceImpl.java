@@ -39,9 +39,10 @@ public class EmailServiceImpl implements EmailService {
             helper.setText(construirCuerpo(nombre, codigo), true);
 
             mailSender.send(message);
-            log.info("Email de recuperación de contraseña enviado a: {}", para);
+            // Sin la direccion: los registros del servidor no guardan datos personales.
+            log.info("Email de recuperación de contraseña enviado");
         } catch (MessagingException | java.io.UnsupportedEncodingException e) {
-            log.error("Error al enviar el email de recuperación a {}: {}", para, e.getMessage());
+            log.error("Error al enviar el email de recuperación: {}", e.getMessage());
             throw new IllegalStateException("No se ha podido enviar el email de recuperación", e);
         }
     }

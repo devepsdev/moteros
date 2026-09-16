@@ -50,6 +50,10 @@ public class Usuario {
     @Column(name = "fecha_registro", updatable = false)
     private LocalDateTime fechaRegistro;
 
+    /** Cuando acepto los terminos al registrarse; null en cuentas anteriores a la casilla. */
+    @Column(name = "fecha_aceptacion_terminos")
+    private LocalDateTime fechaAceptacionTerminos;
+
     @Column(nullable = false)
     private Boolean activo;
 

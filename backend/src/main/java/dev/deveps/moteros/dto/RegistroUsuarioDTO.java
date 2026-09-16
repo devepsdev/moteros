@@ -1,7 +1,9 @@
 package dev.deveps.moteros.dto;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,4 +36,9 @@ public class RegistroUsuarioDTO {
 
     @Size(max = 80, message = "La ciudad no puede superar los 80 caracteres")
     private String ciudad;
+
+    /** Casilla de la app: tiene al menos 16 años y acepta los terminos y la politica de privacidad. */
+    @NotNull(message = "Tienes que aceptar los terminos de uso y la politica de privacidad")
+    @AssertTrue(message = "Tienes que aceptar los terminos de uso y la politica de privacidad")
+    private Boolean aceptaTerminos;
 }

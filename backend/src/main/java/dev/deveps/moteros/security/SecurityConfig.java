@@ -79,6 +79,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/recuperar-password").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/restablecer-password").permitAll()
                         .requestMatchers("/error").permitAll()
+                        // Paginas legales publicas (enlazadas desde Google Play y la app)
+                        .requestMatchers(HttpMethod.GET, "/privacidad", "/terminos", "/eliminar-cuenta", "/legal/**").permitAll()
                         // OpenAPI / Swagger UI (deshabilitado en el perfil 'prod', ver application-prod.properties)
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
                                 "/swagger-resources/**", "/webjars/**").permitAll()

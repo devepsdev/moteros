@@ -69,6 +69,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(dto.getEmail())
                 .passwordHash(passwordEncoder.encode(dto.getPassword()))
                 .ciudad(dto.getCiudad())
+                .fechaAceptacionTerminos(java.time.LocalDateTime.now())
                 .activo(true)
                 .rol(rol)
                 .build();
@@ -150,8 +151,9 @@ public class AuthServiceImpl implements AuthService {
                     try {
                         emailService.enviarCodigoRecuperacion(usuario.getEmail(), usuario.getNombreCompleto(), codigo);
                     } catch (Exception ex) {
-                        log.error("No se ha podido enviar el codigo de recuperacion a {}: {}",
-                                usuario.getEmail(), ex.getMessage());
+                        // Se identifica por uuid: los registros no guardan el email.
+                        log.error("No se ha podido enviar el codigo de recuperacion al usuario {}: {}",
+                                usuario.getUuid(), ex.getMessage());
                     }
                 });
     }

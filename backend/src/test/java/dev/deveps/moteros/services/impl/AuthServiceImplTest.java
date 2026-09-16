@@ -69,7 +69,7 @@ class AuthServiceImplTest {
     private RegistroUsuarioDTO registro() {
         return RegistroUsuarioDTO.builder()
                 .nombreUsuario("nuevo").nombreCompleto("Nuevo Motero")
-                .email("nuevo@test.com").password("password123").ciudad("Madrid").build();
+                .email("nuevo@test.com").password("password123").ciudad("Madrid").aceptaTerminos(true).build();
     }
 
     private Usuario usuario(boolean activo) {

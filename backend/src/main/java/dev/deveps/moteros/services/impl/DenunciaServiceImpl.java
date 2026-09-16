@@ -295,7 +295,7 @@ public class DenunciaServiceImpl implements DenunciaService {
             try {
                 emailService.avisarDenuncia(para, tipo, motivo);
             } catch (RuntimeException e) {
-                log.warn("No se ha podido avisar de una denuncia a {}: {}", para, e.getMessage());
+                log.warn("No se ha podido avisar de una denuncia a un administrador: {}", e.getMessage());
             }
         }));
         if (TransactionSynchronizationManager.isSynchronizationActive()) {

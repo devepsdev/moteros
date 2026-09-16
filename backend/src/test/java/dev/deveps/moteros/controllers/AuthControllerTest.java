@@ -88,9 +88,19 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/auth/registro")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nombreUsuario\":\"nuevo\",\"nombreCompleto\":\"Nuevo\","
-                                + "\"email\":\"nuevo@test.com\",\"password\":\"password123\"}"))
+                                + "\"email\":\"nuevo@test.com\",\"password\":\"password123\",\"aceptaTerminos\":true}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.token").value("t"));
+    }
+
+    @Test
+    void registro_sinAceptarTerminos_devuelve400() throws Exception {
+        mockMvc.perform(post("/api/auth/registro")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombreUsuario\":\"nuevo\",\"nombreCompleto\":\"Nuevo\","
+                                + "\"email\":\"nuevo@test.com\",\"password\":\"password123\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
     }
 
     @Test

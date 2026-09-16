@@ -6,6 +6,9 @@ import dev.deveps.moteros.entities.enums.TipoDenuncia;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -38,4 +41,12 @@ public interface DenunciaRepository extends JpaRepository<Denuncia, Integer> {
 
     /** Cuantas denuncias ha recibido un usuario, para ver si es reincidente. */
     long countByDenunciadoId(Integer denunciadoId);
+
+    @Modifying
+    @Query("""
+            DELETE FROM Denuncia d
+            WHERE d.estado <> dev.deveps.moteros.entities.enums.EstadoDenuncia.pendiente
+              AND d.fechaResolucion < :limite
+            """)
+    int borrarCerradasAntesDe(@Param("limite") LocalDateTime limite);
 }
