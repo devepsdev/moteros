@@ -1,4 +1,4 @@
-import { Dificultad, EstadoSugerencia, RolUsuario, TipoTerreno } from '../models/api.model';
+import { Dificultad, EstadoDenuncia, EstadoSugerencia, MotivoDenuncia, RolUsuario, TipoDenuncia, TipoTerreno } from '../models/api.model';
 
 export const DIFICULTADES: { value: Dificultad; label: string }[] = [
   { value: 'facil', label: 'Fácil' },
@@ -23,6 +23,31 @@ export const ESTADO_SUGERENCIA_LABELS: Record<EstadoSugerencia, string> = {
   pendiente: 'Pendiente',
   aprobada: 'Aprobada',
   rechazada: 'Rechazada',
+};
+
+export const TIPO_DENUNCIA_LABELS: Record<TipoDenuncia, string> = {
+  usuario: 'Perfil',
+  publicacion: 'Publicación',
+  comentario: 'Comentario',
+  mensaje: 'Mensaje privado',
+  ruta: 'Ruta',
+  quedada: 'Quedada',
+};
+
+export const MOTIVO_DENUNCIA_LABELS: Record<MotivoDenuncia, string> = {
+  spam: 'Spam o publicidad',
+  acoso: 'Acoso o insultos',
+  odio: 'Odio o discriminación',
+  sexual: 'Contenido sexual',
+  violencia: 'Violencia o peligro',
+  suplantacion: 'Suplantación',
+  otro: 'Otro motivo',
+};
+
+export const ESTADO_DENUNCIA_LABELS: Record<EstadoDenuncia, string> = {
+  pendiente: 'Pendiente',
+  resuelta: 'Resuelta',
+  descartada: 'Descartada',
 };
 
 export const etiquetaDificultad = (d: Dificultad | null) => DIFICULTADES.find((x) => x.value === d)?.label ?? 'Sin indicar';

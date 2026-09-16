@@ -1,0 +1,173 @@
+<p class="eyebrow text-accent">Moderación</p>
+<h1 class="display mt-1 text-5xl">Denuncias</h1>
+<p class="mt-2 text-sm text-ink-muted">Contenido que los usuarios han denunciado desde la app. Revísalo en menos de 24 horas.</p>
+
+<div class="mt-8 flex w-fit rounded-lg border border-line bg-surface p-1">
+  @for (tab of tabs; track tab.label) {
+    <button
+      type="button"
+      class="cursor-pointer rounded-md px-4 py-1.5 text-sm font-medium transition-colors"
+      [class]="estado() === tab.value ? 'bg-accent text-white' : 'text-ink-muted hover:text-ink'"
+      (click)="setEstado(tab.value)"
+    >
+      {{ tab.label }}
+    </button>
+  }
+</div>
+
+<div class="mt-5 grid items-start gap-6 lg:grid-cols-5">
+  <!-- Listado -->
+  <div class="card overflow-hidden lg:col-span-2">
+    @if (loading() && !result()) {
+      <div class="h-48 animate-pulse bg-sunken"></div>
+    } @else if (result(); as page) {
+      @if (page.content.length === 0) {
+        <div class="px-5 py-16 text-center">
+          <p class="display text-2xl">{{ estado() === 'pendiente' ? 'Todo revisado' : 'No hay denuncias aquí' }}</p>
+          <p class="mt-1 text-sm text-ink-muted">
+            {{ estado() === 'pendiente' ? 'No queda ninguna denuncia esperando.' : 'Prueba con otra pestaña.' }}
+          </p>
+        </div>
+      } @else {
+        <ul>
+          @for (d of page.content; track d.uuid) {
+            <li>
+              <button
+                type="button"
+                class="w-full cursor-pointer border-b border-line px-5 py-4 text-left transition-colors last:border-0 hover:bg-sunken"
+                [class.bg-accent-soft]="selected()?.uuid === d.uuid"
+                (click)="select(d)"
+              >
+                <div class="flex items-start justify-between gap-3">
+                  <p class="font-semibold">{{ motivoLabels[d.motivo] }}</p>
+                  <span class="badge shrink-0 bg-sunken text-ink-muted">{{ tipoLabels[d.tipo] }}</span>
+                </div>
+                <p class="mt-0.5 truncate text-sm text-ink-muted">
+                  {{ d.denunciado ? '@' + d.denunciado.nombreUsuario : 'Cuenta eliminada' }} · {{ d.contenido || 'Sin texto' }}
+                </p>
+                <p class="mt-1 text-xs text-ink-faint">
+                  {{ d.fechaCreacion | date: 'd MMM, HH:mm' }}
+                  @if (estado() === null) { · {{ estadoLabels[d.estado] }} }
+                </p>
+              </button>
+            </li>
+          }
+        </ul>
+        <app-pagination [page]="page.pageable.page" [totalPages]="page.pageable.totalPages" [totalElements]="page.pageable.totalElements" (pageChange)="goToPage($event)" />
+      }
+    }
+  </div>
+
+  <!-- Detalle -->
+  <div class="lg:col-span-3">
+    @if (selected(); as d) {
+      <article class="card p-6">
+        <p class="eyebrow text-ink-faint">{{ tipoLabels[d.tipo] }} · {{ estadoLabels[d.estado] }}</p>
+        <h2 class="display mt-1 text-4xl">{{ motivoLabels[d.motivo] }}</h2>
+        <p class="mt-1 text-sm text-ink-muted">
+          Denunciado el {{ d.fechaCreacion | date: "d 'de' MMMM, HH:mm" }}
+          por {{ d.denunciante ? '@' + d.denunciante.nombreUsuario : 'una cuenta ya eliminada' }}
+        </p>
+
+        @if (d.descripcion) {
+          <blockquote class="mt-5 border-l-2 border-accent pl-4 text-sm leading-relaxed whitespace-pre-line">{{ d.descripcion }}</blockquote>
+        }
+
+        <div class="mt-6">
+          <p class="label">Contenido denunciado{{ d.contenidoExiste ? '' : ' (ya no existe)' }}</p>
+          <div class="rounded-xl border border-line bg-sunken p-4">
+            @if (d.imagenUrl) {
+              <a [href]="d.imagenUrl" target="_blank" rel="noopener noreferrer">
+                <img [src]="d.imagenUrl" alt="Imagen denunciada" class="mb-3 max-h-72 rounded-lg object-contain" />
+              </a>
+            }
+            <p class="text-sm leading-relaxed whitespace-pre-line">{{ d.contenido || 'Sin texto' }}</p>
+          </div>
+          <p class="mt-1 text-xs text-ink-faint">Copia tomada al denunciar: el autor puede haberlo cambiado después.</p>
+        </div>
+
+        <dl class="mt-6 grid gap-5 sm:grid-cols-2">
+          <div>
+            <dt class="label">Autor</dt>
+            <dd>
+              @if (d.denunciado; as u) {
+                <span class="font-semibold">{{ u.nombreCompleto }}</span> <span class="text-ink-muted">&#64;{{ u.nombreUsuario }}</span>
+                @if (d.denunciadoActivo === false) {
+                  <span class="badge ml-1 bg-danger-soft text-danger">De baja</span>
+                }
+              } @else {
+                <span class="text-ink-muted">Cuenta eliminada</span>
+              }
+            </dd>
+          </div>
+          <div>
+            <dt class="label">Denuncias contra este autor</dt>
+            <dd [class.text-danger]="d.denunciasContraDenunciado > 1">{{ d.denunciasContraDenunciado }}</dd>
+          </div>
+        </dl>
+
+        <div class="mt-8 border-t border-line pt-6">
+          @if (d.estado === 'pendiente') {
+            <p class="label">Medidas</p>
+            <div class="space-y-3">
+              <label class="flex cursor-pointer items-center gap-3 text-sm" [class.opacity-50]="!d.contenidoExiste">
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 accent-[var(--color-accent)]"
+                  [disabled]="!d.contenidoExiste"
+                  [checked]="eliminarContenido()"
+                  (change)="eliminarContenido.set($any($event.target).checked)"
+                />
+                {{ etiquetaEliminar(d) }}
+              </label>
+              <label class="flex cursor-pointer items-center gap-3 text-sm" [class.opacity-50]="!d.denunciado || d.denunciadoActivo === false">
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 accent-[var(--color-accent)]"
+                  [disabled]="!d.denunciado || d.denunciadoActivo === false"
+                  [checked]="darDeBaja()"
+                  (change)="darDeBaja.set($any($event.target).checked)"
+                />
+                Dar de baja al autor (no podrá volver a entrar)
+              </label>
+            </div>
+
+            <label class="label mt-5" for="nota">Nota interna (opcional)</label>
+            <textarea
+              id="nota"
+              class="input"
+              rows="2"
+              maxlength="500"
+              placeholder="Por qué se toma esta decisión"
+              [value]="nota()"
+              (input)="nota.set($any($event.target).value)"
+            ></textarea>
+
+            <div class="mt-5 flex justify-end">
+              <button type="button" class="btn" [class]="eliminarContenido() || darDeBaja() ? 'btn-danger' : 'btn-secondary'" [disabled]="busy()" (click)="resolve()">
+                {{ eliminarContenido() || darDeBaja() ? 'Aplicar medidas' : 'Descartar sin medidas' }}
+              </button>
+            </div>
+          } @else {
+            <p class="label">Resolución</p>
+            <ul class="space-y-1 text-sm">
+              @if (d.contenidoEliminado) { <li>Contenido eliminado.</li> }
+              @if (d.usuarioDadoDeBaja) { <li>Autor dado de baja.</li> }
+              @if (!d.contenidoEliminado && !d.usuarioDadoDeBaja) { <li>Descartada sin medidas.</li> }
+            </ul>
+            @if (d.notaResolucion) {
+              <p class="mt-3 text-sm whitespace-pre-line text-ink-muted">{{ d.notaResolucion }}</p>
+            }
+            <p class="mt-3 text-xs text-ink-faint">
+              {{ d.resueltaPor ? '@' + d.resueltaPor.nombreUsuario : '' }} · {{ d.fechaResolucion | date: "d 'de' MMMM, HH:mm" }}
+            </p>
+          }
+        </div>
+      </article>
+    } @else {
+      <div class="rounded-2xl border border-dashed border-line-strong px-6 py-16 text-center">
+        <p class="text-ink-muted">Selecciona una denuncia para revisarla.</p>
+      </div>
+    }
+  </div>
+</div>

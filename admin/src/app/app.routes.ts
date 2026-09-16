@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { Login } from './components/auth/login/login';
 import { Dashboard } from './components/dashboard/dashboard';
+import { DenunciaList } from './components/denuncias/denuncia-list/denuncia-list';
 import { RutaForm } from './components/rutas/ruta-form/ruta-form';
 import { RutaList } from './components/rutas/ruta-list/ruta-list';
 import { SugerenciaList } from './components/sugerencias/sugerencia-list/sugerencia-list';
@@ -20,6 +21,7 @@ export const routes: Routes = [
       { path: 'rutas/nueva', component: RutaForm, title: 'Nueva ruta · moter@s' },
       { path: 'rutas/:uuid', component: RutaForm, title: 'Editar ruta · moter@s' },
       { path: 'sugerencias', component: SugerenciaList, title: 'Sugerencias · moter@s' },
+      { path: 'denuncias', component: DenunciaList, title: 'Denuncias · moter@s' },
       { path: 'usuarios', component: UsuarioList, title: 'Usuarios · moter@s' },
     ],
   },

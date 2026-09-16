@@ -28,6 +28,14 @@
           }
         }
       </a>
+      <a routerLink="/denuncias" routerLinkActive="nav-active" class="nav-link">
+        <span class="flex-1">Denuncias</span>
+        @if (statsService.stats(); as s) {
+          @if (s.denunciasPendientes > 0) {
+            <span class="nav-count" title="Denuncias pendientes de revisar">{{ s.denunciasPendientes }}</span>
+          }
+        }
+      </a>
       <a routerLink="/usuarios" routerLinkActive="nav-active" class="nav-link">Usuarios</a>
     </nav>
 

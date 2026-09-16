@@ -3,7 +3,20 @@
 
 @if (stats(); as s) {
   <!-- Tareas pendientes: lo primero que hay que ver al entrar -->
-  <section class="mt-8 grid gap-4 md:grid-cols-2">
+  <section class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <a routerLink="/denuncias" class="card group flex items-center gap-5 p-6 transition-colors hover:border-accent" [class.border-danger]="s.denunciasPendientes > 0">
+      <span class="display text-6xl" [class.text-danger]="s.denunciasPendientes > 0" [class.text-ink-faint]="s.denunciasPendientes === 0">
+        {{ s.denunciasPendientes }}
+      </span>
+      <span class="flex-1">
+        <span class="block font-semibold">Denuncias por revisar</span>
+        <span class="block text-sm text-ink-muted">
+          {{ s.denunciasPendientes === 0 ? 'Nada pendiente.' : 'Revísalas en menos de 24 horas.' }}
+        </span>
+      </span>
+      <span class="text-ink-faint transition-transform group-hover:translate-x-1">→</span>
+    </a>
+
     <a routerLink="/sugerencias" class="card group flex items-center gap-5 p-6 transition-colors hover:border-accent">
       <span class="display text-6xl" [class.text-accent]="s.sugerenciasPendientes > 0" [class.text-ink-faint]="s.sugerenciasPendientes === 0">
         {{ s.sugerenciasPendientes }}

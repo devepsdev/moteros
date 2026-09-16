@@ -7,6 +7,9 @@ export type RolUsuario = 'user' | 'admin' | 'scraper';
 export type Dificultad = 'facil' | 'moderada' | 'dificil' | 'extrema';
 export type TipoTerreno = 'asfalto' | 'offroad' | 'mixto';
 export type EstadoSugerencia = 'pendiente' | 'aprobada' | 'rechazada';
+export type TipoDenuncia = 'usuario' | 'publicacion' | 'comentario' | 'mensaje' | 'ruta' | 'quedada';
+export type MotivoDenuncia = 'spam' | 'acoso' | 'odio' | 'sexual' | 'violencia' | 'suplantacion' | 'otro';
+export type EstadoDenuncia = 'pendiente' | 'resuelta' | 'descartada';
 
 /** Envoltorio de todas las respuestas (ApiResponseDTO). */
 export interface ApiResponse<T> {
@@ -147,4 +150,28 @@ export interface EstadisticasGlobales {
   valoraciones: number;
   amistadesAceptadas: number;
   sugerenciasPendientes: number;
+  denunciasPendientes: number;
+}
+
+/** Denuncia de contenido (DenunciaResponseDTO). */
+export interface Denuncia {
+  uuid: string;
+  denunciante: UsuarioSummary | null;
+  denunciado: UsuarioSummary | null;
+  denunciadoActivo: boolean | null;
+  denunciasContraDenunciado: number;
+  tipo: TipoDenuncia;
+  referenciaUuid: string;
+  contenidoExiste: boolean;
+  motivo: MotivoDenuncia;
+  descripcion: string | null;
+  contenido: string | null;
+  imagenUrl: string | null;
+  estado: EstadoDenuncia;
+  contenidoEliminado: boolean;
+  usuarioDadoDeBaja: boolean;
+  notaResolucion: string | null;
+  resueltaPor: UsuarioSummary | null;
+  fechaCreacion: string;
+  fechaResolucion: string | null;
 }
