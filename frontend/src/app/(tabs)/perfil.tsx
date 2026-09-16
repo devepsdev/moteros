@@ -2,6 +2,7 @@ import { useAuth } from "@/auth/AuthContext";
 import { PerfilView } from "@/components/PerfilView";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
+import { abrirLegal } from "@/lib/legal";
 import { useRefocus } from "@/lib/useRefocus";
 import { useTheme } from "@/theme";
 import Feather from "@expo/vector-icons/Feather";
@@ -42,6 +43,8 @@ export default function PerfilScreen() {
     { icon: "user", label: "Datos personales", href: "/cuenta/datos" },
     { icon: "lock", label: "Cambiar contraseña", href: "/cuenta/contrasena" },
     { icon: "slash", label: "Usuarios bloqueados", href: "/cuenta/bloqueados" },
+    { icon: "info", label: "Política de privacidad", onPress: () => abrirLegal("privacidad") },
+    { icon: "file-text", label: "Términos de uso", onPress: () => abrirLegal("terminos") },
     { icon: "log-out", label: "Cerrar sesión", onPress: confirmarLogout },
     { icon: "trash-2", label: "Eliminar cuenta", href: "/cuenta/eliminar", danger: true },
   ];

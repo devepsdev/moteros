@@ -4,7 +4,9 @@ import { Input } from "@/components/ui/Input";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { describeError } from "@/lib/errors";
+import { abrirLegal } from "@/lib/legal";
 import { useTheme } from "@/theme";
+import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -24,6 +26,7 @@ export default function AccesoScreen() {
   const [email, setEmail] = useState("");
   const [ciudad, setCiudad] = useState("");
   const [password, setPassword] = useState("");
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -50,6 +53,7 @@ export default function AccesoScreen() {
           email: email.trim(),
           password,
           ciudad: ciudad.trim() || undefined,
+          aceptaTerminos,
         });
       }
       // Stack.Protected lleva a las pestañas al cambiar la sesión.
@@ -64,7 +68,7 @@ export default function AccesoScreen() {
 
   const canSubmit = isLogin
     ? identificador.trim().length > 0 && password.length > 0
-    : nombreUsuario.trim().length >= 3 && nombreCompleto.trim().length > 0 && email.trim().length > 0 && password.length >= 8;
+    : nombreUsuario.trim().length >= 3 && nombreCompleto.trim().length > 0 && email.trim().length > 0 && password.length >= 8 && aceptaTerminos;
 
   return (
     <Screen>
@@ -163,7 +167,27 @@ export default function AccesoScreen() {
                   ¿Has olvidado tu contraseña?
                 </Text>
               </Pressable>
-            ) : null}
+            ) : (
+              <Pressable
+                onPress={() => setAceptaTerminos((v) => !v)}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: aceptaTerminos }}
+                style={{ flexDirection: "row", alignItems: "flex-start", gap: theme.spacing.md }}
+              >
+                <Feather name={aceptaTerminos ? "check-square" : "square"} size={22} color={aceptaTerminos ? theme.colors.accent : theme.colors.inkMuted} />
+                <Text variant="caption" color="inkMuted" style={{ flex: 1 }}>
+                  Tengo al menos 16 años y acepto los{" "}
+                  <Text variant="captionMedium" color="accent" onPress={() => abrirLegal("terminos")}>
+                    términos de uso
+                  </Text>{" "}
+                  y la{" "}
+                  <Text variant="captionMedium" color="accent" onPress={() => abrirLegal("privacidad")}>
+                    política de privacidad
+                  </Text>
+                  . No se tolera el contenido ofensivo ni los usuarios abusivos.
+                </Text>
+              </Pressable>
+            )}
 
             {error ? (
               <Text variant="caption" color="danger">

@@ -48,6 +48,8 @@ export interface RegistroRequest {
   email: string;
   password: string;
   ciudad?: string;
+  /** Tiene al menos 16 años y acepta los términos de uso y la política de privacidad. */
+  aceptaTerminos: boolean;
 }
 
 export interface LoginResponse {
