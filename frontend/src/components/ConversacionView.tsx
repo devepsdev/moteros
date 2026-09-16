@@ -6,6 +6,7 @@ import { LoadingView } from "@/components/ui/ListFooter";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { confirmarBloqueo } from "@/lib/bloqueo";
+import { abrirDenuncia } from "@/lib/denuncia";
 import { describeError } from "@/lib/errors";
 import { fechaDeApi, formatDia, formatHora } from "@/lib/format";
 import { refrescarNoLeidos } from "@/lib/noLeidos";
@@ -110,13 +111,23 @@ export function ConversacionView({ conversacionUuid: uuidInicial, interlocutor }
         <IconButton
           name="more-vertical"
           accessibilityLabel="Más opciones"
-          onPress={() =>
-            // Tras bloquear, la conversación deja de existir para los dos.
-            confirmarBloqueo({ uuid: interlocutor.uuid, nombre: interlocutor.nombre }, () => {
-              refrescarNoLeidos();
-              router.replace("/chat");
-            })
-          }
+          onPress={() => {
+            const autor = { uuid: interlocutor.uuid, nombre: interlocutor.nombre };
+            Alert.alert(interlocutor.nombre, "Para denunciar un mensaje concreto, mantenlo pulsado.", [
+              { text: "Cancelar", style: "cancel" },
+              { text: "Denunciar usuario", onPress: () => abrirDenuncia(router, "usuario", autor.uuid, autor) },
+              {
+                text: "Bloquear",
+                style: "destructive",
+                // Tras bloquear, la conversación deja de existir para los dos.
+                onPress: () =>
+                  confirmarBloqueo(autor, () => {
+                    refrescarNoLeidos();
+                    router.replace("/chat");
+                  }),
+              },
+            ]);
+          }}
         />
       </View>
 
@@ -147,7 +158,11 @@ export function ConversacionView({ conversacionUuid: uuidInicial, interlocutor }
                       {formatDia(fecha)}
                     </Text>
                   ) : null}
-                  <Burbuja mensaje={item} agrupado={Boolean(agrupado)} />
+                  <Burbuja
+                    mensaje={item}
+                    agrupado={Boolean(agrupado)}
+                    onDenunciar={() => abrirDenuncia(router, "mensaje", item.uuid, { uuid: interlocutor.uuid, nombre: interlocutor.nombre })}
+                  />
                 </View>
               );
             }}
@@ -206,12 +221,23 @@ export function ConversacionView({ conversacionUuid: uuidInicial, interlocutor }
   );
 }
 
-function Burbuja({ mensaje: m, agrupado }: { mensaje: Mensaje; agrupado: boolean }) {
+function Burbuja({ mensaje: m, agrupado, onDenunciar }: { mensaje: Mensaje; agrupado: boolean; onDenunciar: () => void }) {
   const theme = useTheme();
   const propio = Boolean(m.propio);
   return (
     <View style={{ alignItems: propio ? "flex-end" : "flex-start", marginTop: agrupado ? 3 : theme.spacing.sm }}>
-      <View
+      <Pressable
+        // Los mensajes recibidos se denuncian con una pulsación larga.
+        onLongPress={
+          propio
+            ? undefined
+            : () =>
+                Alert.alert("Mensaje", undefined, [
+                  { text: "Cancelar", style: "cancel" },
+                  { text: "Denunciar mensaje", onPress: onDenunciar },
+                ])
+        }
+        delayLongPress={350}
         style={{
           maxWidth: "80%",
           paddingHorizontal: theme.spacing.md,
@@ -232,7 +258,7 @@ function Burbuja({ mensaje: m, agrupado }: { mensaje: Mensaje; agrupado: boolean
           {formatHora(fechaDeApi(m.fechaEnvio))}
           {propio && m.leido ? " · Leído" : ""}
         </Text>
-      </View>
+      </Pressable>
     </View>
   );
 }

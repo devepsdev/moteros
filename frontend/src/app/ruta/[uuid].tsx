@@ -14,6 +14,7 @@ import { ApiError } from "@/api/client";
 import { describeError } from "@/lib/errors";
 import { etiquetaTerreno, formatDuracion, formatKm, formatRelativo } from "@/lib/format";
 import { useAsync } from "@/lib/useAsync";
+import { abrirDenuncia } from "@/lib/denuncia";
 import { useRefocus } from "@/lib/useRefocus";
 import { useTheme } from "@/theme";
 import type { PuntoRuta, RutaResponse } from "@/types/dto";
@@ -106,7 +107,11 @@ export default function RutaDetalleScreen() {
           )}
           <View style={{ position: "absolute", top: insets.top + theme.spacing.sm, left: theme.spacing.md, right: theme.spacing.md, flexDirection: "row", justifyContent: "space-between" }}>
             <IconButton name="arrow-left" variant="floating" accessibilityLabel="Volver" onPress={volver} />
-            {esCreador ? <IconButton name="trash-2" variant="floating" accessibilityLabel="Eliminar ruta" disabled={eliminando} onPress={confirmarEliminar} /> : null}
+            {esCreador ? (
+              <IconButton name="trash-2" variant="floating" accessibilityLabel="Eliminar ruta" disabled={eliminando} onPress={confirmarEliminar} />
+            ) : (
+              <IconButton name="flag" variant="floating" accessibilityLabel="Denunciar ruta" onPress={() => abrirDenuncia(router, "ruta", r.uuid)} />
+            )}
           </View>
         </View>
 

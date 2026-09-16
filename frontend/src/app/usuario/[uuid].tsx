@@ -11,6 +11,7 @@ import { LoadingView } from "@/components/ui/ListFooter";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { confirmarBloqueo } from "@/lib/bloqueo";
+import { abrirDenuncia } from "@/lib/denuncia";
 import { describeError } from "@/lib/errors";
 import { useAsync } from "@/lib/useAsync";
 import { useTheme } from "@/theme";
@@ -56,14 +57,12 @@ export default function UsuarioScreen() {
   const u = usuario.data;
   const menu = () => {
     if (!u) return;
-    if (bloqueado.data) {
-      Alert.alert(u.nombreCompleto, undefined, [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Desbloquear", onPress: desbloquear },
-      ]);
-    } else {
-      confirmarBloqueo({ uuid: u.uuid, nombre: u.nombreCompleto }, recargar);
-    }
+    const autor = { uuid: u.uuid, nombre: u.nombreCompleto };
+    Alert.alert(u.nombreCompleto, undefined, [
+      { text: "Cancelar", style: "cancel" },
+      { text: "Denunciar perfil", onPress: () => abrirDenuncia(router, "usuario", u.uuid, bloqueado.data ? undefined : autor) },
+      bloqueado.data ? { text: "Desbloquear", onPress: desbloquear } : { text: "Bloquear", style: "destructive", onPress: () => confirmarBloqueo(autor, recargar) },
+    ]);
   };
 
   return (

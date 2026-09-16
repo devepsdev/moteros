@@ -8,6 +8,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { ListFooter, LoadingView } from "@/components/ui/ListFooter";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
+import { abrirDenuncia } from "@/lib/denuncia";
 import { describeError } from "@/lib/errors";
 import { formatRelativo } from "@/lib/format";
 import { useAlternarLike } from "@/lib/useAlternarLike";
@@ -62,6 +63,16 @@ export default function PublicacionDetalleScreen() {
     }
   };
 
+  const opcionesComentario = (c: Comentario) => {
+    const propio = c.autor.uuid === user?.uuid;
+    const puedeBorrar = propio || publicacion?.autor.uuid === user?.uuid;
+    Alert.alert("Comentario", undefined, [
+      { text: "Cancelar", style: "cancel" },
+      ...(propio ? [] : [{ text: "Denunciar", onPress: () => abrirDenuncia(router, "comentario", c.uuid, { uuid: c.autor.uuid, nombre: c.autor.nombreCompleto }) }]),
+      ...(puedeBorrar ? [{ text: "Eliminar", style: "destructive" as const, onPress: () => eliminarComentario(c) }] : []),
+    ]);
+  };
+
   const eliminarComentario = (c: Comentario) =>
     Alert.alert("Eliminar comentario", "¿Seguro que quieres borrarlo?", [
       { text: "Cancelar", style: "cancel" },
@@ -103,6 +114,12 @@ export default function PublicacionDetalleScreen() {
       <Text variant="title3">Publicación</Text>
       {publicacion && user?.uuid === publicacion.autor.uuid ? (
         <IconButton name="trash-2" accessibilityLabel="Eliminar publicación" onPress={eliminarPublicacion} />
+      ) : publicacion ? (
+        <IconButton
+          name="flag"
+          accessibilityLabel="Denunciar publicación"
+          onPress={() => abrirDenuncia(router, "publicacion", publicacion.uuid, { uuid: publicacion.autor.uuid, nombre: publicacion.autor.nombreCompleto })}
+        />
       ) : (
         <View style={{ width: 42 }} />
       )}
@@ -137,9 +154,8 @@ export default function PublicacionDetalleScreen() {
             </View>
           }
           renderItem={({ item }) => {
-            const puedeBorrar = item.autor.uuid === user?.uuid || publicacion.autor.uuid === user?.uuid;
             return (
-              <Pressable onLongPress={puedeBorrar ? () => eliminarComentario(item) : undefined} delayLongPress={350} style={{ flexDirection: "row", gap: theme.spacing.md }}>
+              <Pressable onLongPress={() => opcionesComentario(item)} delayLongPress={350} style={{ flexDirection: "row", gap: theme.spacing.md }}>
                 <Pressable onPress={() => router.push({ pathname: "/usuario/[uuid]", params: { uuid: item.autor.uuid } })}>
                   <Avatar nombre={item.autor.nombreCompleto} fotoUrl={item.autor.fotoPerfilUrl} size={34} />
                 </Pressable>

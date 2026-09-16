@@ -57,6 +57,7 @@ function RootNavigator() {
           <Stack.Screen name="ruta/nueva" />
           <Stack.Screen name="valorar/[uuid]" options={{ presentation: "modal" }} />
           <Stack.Screen name="publicacion/nueva" options={{ presentation: "modal" }} />
+          <Stack.Screen name="denunciar" options={{ presentation: "modal" }} />
           <Stack.Screen name="publicacion/[uuid]" />
           <Stack.Screen name="moto/editar" />
           <Stack.Screen name="usuario/[uuid]" />

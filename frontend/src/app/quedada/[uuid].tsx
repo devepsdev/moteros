@@ -11,6 +11,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { LoadingView } from "@/components/ui/ListFooter";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
+import { abrirDenuncia } from "@/lib/denuncia";
 import { describeError } from "@/lib/errors";
 import { etiquetaNivel, fechaDeApi, formatDia, formatHora } from "@/lib/format";
 import { useAsync } from "@/lib/useAsync";
@@ -55,6 +56,9 @@ export default function QuedadaDetalleScreen() {
   const q = quedada.data;
   const fecha = fechaDeApi(q.fechaHora);
   const esOrganizador = user?.uuid === q.organizador.uuid;
+  const denunciar = esOrganizador
+    ? null
+    : () => abrirDenuncia(router, "quedada", q.uuid, { uuid: q.organizador.uuid, nombre: q.organizador.nombreCompleto });
   const programada = q.estado === "programada";
   const yaPasada = fecha.getTime() < ahora;
   const apuntado = q.inscripcionUsuarioActual === "confirmado" || q.inscripcionUsuarioActual === "pendiente";
@@ -105,13 +109,15 @@ export default function QuedadaDetalleScreen() {
         {hayMapa ? (
           <View style={{ height: 240, backgroundColor: theme.colors.surfaceSunken }}>
             <RutaMap puntos={[{ orden: 0, latitud: q.latitudEncuentro!, longitud: q.longitudEncuentro! }]} etiquetaInicio="Punto de encuentro" />
-            <View style={{ position: "absolute", top: insets.top + theme.spacing.sm, left: theme.spacing.md }}>
+            <View style={{ position: "absolute", top: insets.top + theme.spacing.sm, left: theme.spacing.md, right: theme.spacing.md, flexDirection: "row", justifyContent: "space-between" }}>
               <IconButton name="arrow-left" variant="floating" accessibilityLabel="Volver" onPress={volver} />
+              {denunciar ? <IconButton name="flag" variant="floating" accessibilityLabel="Denunciar quedada" onPress={denunciar} /> : null}
             </View>
           </View>
         ) : (
-          <View style={{ paddingTop: insets.top, paddingHorizontal: theme.spacing.sm }}>
+          <View style={{ paddingTop: insets.top, paddingHorizontal: theme.spacing.sm, flexDirection: "row", justifyContent: "space-between" }}>
             <IconButton name="arrow-left" accessibilityLabel="Volver" onPress={volver} />
+            {denunciar ? <IconButton name="flag" accessibilityLabel="Denunciar quedada" onPress={denunciar} /> : null}
           </View>
         )}
 
