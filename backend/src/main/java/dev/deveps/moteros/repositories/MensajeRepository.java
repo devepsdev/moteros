@@ -28,6 +28,9 @@ public interface MensajeRepository extends JpaRepository<Mensaje, Integer> {
             SELECT COUNT(m) FROM Mensaje m
             WHERE m.leido = false AND m.remitente.id <> :usuarioId
               AND (m.conversacion.usuario1.id = :usuarioId OR m.conversacion.usuario2.id = :usuarioId)
+              AND NOT EXISTS (SELECT b FROM Bloqueo b
+                              WHERE (b.bloqueador = m.conversacion.usuario1 AND b.bloqueado = m.conversacion.usuario2)
+                                 OR (b.bloqueador = m.conversacion.usuario2 AND b.bloqueado = m.conversacion.usuario1))
             """)
     long countNoLeidosTotal(@Param("usuarioId") Integer usuarioId);
 

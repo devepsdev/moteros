@@ -50,7 +50,7 @@ class PublicacionRepositoryTest {
 
     @Test
     void buscarPorTexto_coincidenciaEnContenido() {
-        Page<Publicacion> res = publicacionRepository.buscarPorTexto("curvas", PageRequest.of(0, 10));
+        Page<Publicacion> res = publicacionRepository.buscarPorTexto("curvas", yo.getId(), PageRequest.of(0, 10));
         assertThat(res.getContent()).hasSize(1);
         assertThat(res.getContent().getFirst().getUsuario().getNombreUsuario()).isEqualTo("yo");
     }

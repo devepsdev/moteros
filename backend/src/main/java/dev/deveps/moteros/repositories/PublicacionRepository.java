@@ -19,7 +19,6 @@ public interface PublicacionRepository extends JpaRepository<Publicacion, Intege
     @Query("SELECT p.imagenUrl FROM Publicacion p WHERE p.usuario.id = :usuarioId AND p.imagenUrl IS NOT NULL")
     java.util.List<String> imagenesDeUsuario(@Param("usuarioId") Integer usuarioId);
 
-    Page<Publicacion> findByUsuarioUuidOrderByFechaPublicacionDesc(String usuarioUuid, Pageable pageable);
 
     long countByUsuarioId(Integer usuarioId);
 
@@ -27,10 +26,13 @@ public interface PublicacionRepository extends JpaRepository<Publicacion, Intege
 
     @Query("""
             SELECT p FROM Publicacion p
-            WHERE :texto IS NULL OR :texto = '' OR
-                  LOWER(p.contenido) LIKE LOWER(CONCAT('%', :texto, '%'))
+            WHERE (:texto IS NULL OR :texto = '' OR
+                   LOWER(p.contenido) LIKE LOWER(CONCAT('%', :texto, '%')))
+              AND NOT EXISTS (SELECT b FROM Bloqueo b
+                              WHERE (b.bloqueador.id = :yoId AND b.bloqueado = p.usuario)
+                                 OR (b.bloqueado.id = :yoId AND b.bloqueador = p.usuario))
             """)
-    Page<Publicacion> buscarPorTexto(@Param("texto") String texto, Pageable pageable);
+    Page<Publicacion> buscarPorTexto(@Param("texto") String texto, @Param("yoId") Integer yoId, Pageable pageable);
 
     /**
      * Feed del usuario {@code usuarioId}: sus publicaciones y las de sus amigos aceptados.
@@ -46,4 +48,7 @@ public interface PublicacionRepository extends JpaRepository<Publicacion, Intege
                )
             """)
     Page<Publicacion> feed(@Param("usuarioId") Integer usuarioId, Pageable pageable);
+
+    /** Publicaciones de un usuario, la mas reciente primero. */
+    Page<Publicacion> findByUsuarioUuidOrderByFechaPublicacionDesc(String usuarioUuid, Pageable pageable);
 }

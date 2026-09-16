@@ -14,6 +14,7 @@ import dev.deveps.moteros.entities.enums.TipoNotificacion;
 import dev.deveps.moteros.exceptions.BadRequestException;
 import dev.deveps.moteros.exceptions.ResourceNotFoundException;
 import dev.deveps.moteros.mapper.EntityDtoMapper;
+import dev.deveps.moteros.repositories.BloqueoRepository;
 import dev.deveps.moteros.repositories.ComentarioRepository;
 import dev.deveps.moteros.repositories.LikePublicacionRepository;
 import dev.deveps.moteros.repositories.PublicacionRepository;
@@ -24,6 +25,7 @@ import dev.deveps.moteros.services.NotificacionService;
 import dev.deveps.moteros.services.PublicacionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +42,7 @@ public class PublicacionServiceImpl implements PublicacionService {
     private final LikePublicacionRepository likeRepository;
     private final RutaRepository rutaRepository;
     private final ValoracionRutaRepository valoracionRutaRepository;
+    private final BloqueoRepository bloqueoRepository;
     private final UsuarioAutenticadoProvider usuarioAutenticado;
     private final NotificacionService notificacionService;
     private final EntityDtoMapper mapper;
@@ -56,12 +59,16 @@ public class PublicacionServiceImpl implements PublicacionService {
     @Override
     @Transactional(readOnly = true)
     public Page<PublicacionResponseDTO> buscar(String texto, Pageable pageable) {
-        return publicacionRepository.buscarPorTexto(texto, pageable).map(p -> toResponse(p, false));
+        return publicacionRepository.buscarPorTexto(texto, usuarioAutenticado.obtenerIdUsuarioActual(), pageable)
+                .map(p -> toResponse(p, false));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<PublicacionResponseDTO> listarPorUsuario(String usuarioUuid, Pageable pageable) {
+        if (bloqueoRepository.existeEntreUuid(usuarioAutenticado.obtenerIdUsuarioActual(), usuarioUuid)) {
+            return Page.empty(pageable);
+        }
         return publicacionRepository
                 .findByUsuarioUuidOrderByFechaPublicacionDesc(usuarioUuid, pageable)
                 .map(p -> toResponse(p, true));
@@ -111,7 +118,7 @@ public class PublicacionServiceImpl implements PublicacionService {
     public Page<ComentarioResponseDTO> listarComentarios(String publicacionUuid, Pageable pageable) {
         buscar(publicacionUuid);
         return comentarioRepository
-                .findByPublicacionUuidOrderByFechaAsc(publicacionUuid, pageable)
+                .findVisibles(publicacionUuid, usuarioAutenticado.obtenerIdUsuarioActual(), pageable)
                 .map(mapper::comentarioResponse);
     }
 
@@ -181,9 +188,14 @@ public class PublicacionServiceImpl implements PublicacionService {
 
     // ===================== PRIVADOS =====================
 
+    /** Publicacion por uuid; si hay un bloqueo con su autor se trata como inexistente. */
     private Publicacion buscar(String uuid) {
-        return publicacionRepository.findByUuid(uuid)
+        Publicacion publicacion = publicacionRepository.findByUuid(uuid)
                 .orElseThrow(() -> new ResourceNotFoundException("Publicacion no encontrada: " + uuid));
+        if (bloqueoRepository.existeEntre(usuarioAutenticado.obtenerIdUsuarioActual(), publicacion.getUsuario().getId())) {
+            throw new ResourceNotFoundException("Publicacion no encontrada: " + uuid);
+        }
+        return publicacion;
     }
 
     private void exigirAutor(Publicacion publicacion) {
@@ -202,14 +214,15 @@ public class PublicacionServiceImpl implements PublicacionService {
 
     private PublicacionResponseDTO toResponse(Publicacion p, boolean incluirComentarios) {
         Integer id = p.getId();
+        Integer yoId = usuarioAutenticado.obtenerIdUsuarioActual();
         long numLikes = likeRepository.countByPublicacionId(id);
         long numComentarios = comentarioRepository.countByPublicacionId(id);
         boolean likeActual = likeRepository.existsByPublicacionIdAndUsuarioId(
-                id, usuarioAutenticado.obtenerIdUsuarioActual());
+                id, yoId);
 
         List<ComentarioResponseDTO> comentarios = null;
         if (incluirComentarios) {
-            comentarios = comentarioRepository.findTop3ByPublicacionIdOrderByFechaDesc(id).stream()
+            comentarios = comentarioRepository.findUltimosVisibles(id, yoId, PageRequest.of(0, 3)).stream()
                     .map(mapper::comentarioResponse)
                     .toList();
         }

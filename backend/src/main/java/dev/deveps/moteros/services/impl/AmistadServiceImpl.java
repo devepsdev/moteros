@@ -10,6 +10,7 @@ import dev.deveps.moteros.exceptions.BadRequestException;
 import dev.deveps.moteros.exceptions.ResourceNotFoundException;
 import dev.deveps.moteros.mapper.EntityDtoMapper;
 import dev.deveps.moteros.repositories.AmistadRepository;
+import dev.deveps.moteros.repositories.BloqueoRepository;
 import dev.deveps.moteros.repositories.UsuarioRepository;
 import dev.deveps.moteros.security.UsuarioAutenticadoProvider;
 import dev.deveps.moteros.services.AmistadService;
@@ -27,6 +28,7 @@ public class AmistadServiceImpl implements AmistadService {
 
     private final AmistadRepository amistadRepository;
     private final UsuarioRepository usuarioRepository;
+    private final BloqueoRepository bloqueoRepository;
     private final UsuarioAutenticadoProvider usuarioAutenticado;
     private final NotificacionService notificacionService;
     private final EntityDtoMapper mapper;
@@ -38,6 +40,9 @@ public class AmistadServiceImpl implements AmistadService {
 
         if (yo.getId().equals(otro.getId())) {
             throw new BadRequestException("No puedes enviarte una solicitud a ti mismo");
+        }
+        if (bloqueoRepository.existeEntre(yo.getId(), otro.getId())) {
+            throw new BadRequestException("No puedes enviar una solicitud a este usuario");
         }
 
         Amistad amistad = amistadRepository.findRelacion(yo.getId(), otro.getId()).orElse(null);

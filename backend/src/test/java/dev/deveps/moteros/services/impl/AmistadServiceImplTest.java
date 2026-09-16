@@ -8,6 +8,7 @@ import dev.deveps.moteros.entities.enums.TipoNotificacion;
 import dev.deveps.moteros.exceptions.BadRequestException;
 import dev.deveps.moteros.mapper.EntityDtoMapper;
 import dev.deveps.moteros.repositories.AmistadRepository;
+import dev.deveps.moteros.repositories.BloqueoRepository;
 import dev.deveps.moteros.repositories.UsuarioRepository;
 import dev.deveps.moteros.security.UsuarioAutenticadoProvider;
 import dev.deveps.moteros.services.NotificacionService;
@@ -33,6 +34,7 @@ class AmistadServiceImplTest {
 
     @Mock private AmistadRepository amistadRepository;
     @Mock private UsuarioRepository usuarioRepository;
+    @Mock private BloqueoRepository bloqueoRepository;
     @Mock private UsuarioAutenticadoProvider usuarioAutenticado;
     @Mock private NotificacionService notificacionService;
 
@@ -43,7 +45,7 @@ class AmistadServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new AmistadServiceImpl(amistadRepository, usuarioRepository, usuarioAutenticado,
+        service = new AmistadServiceImpl(amistadRepository, usuarioRepository, bloqueoRepository, usuarioAutenticado,
                 notificacionService, new EntityDtoMapper());
         yo = Usuario.builder().id(1).uuid("uuid-yo").nombreUsuario("yo").nombreCompleto("Yo Motero")
                 .email("yo@test.com").passwordHash("h").activo(true).build();
@@ -81,6 +83,17 @@ class AmistadServiceImplTest {
 
         assertThatThrownBy(() -> service.enviarSolicitud("uuid-otro"))
                 .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    void enviarSolicitud_conBloqueo_lanzaBadRequest() {
+        when(usuarioAutenticado.obtenerUsuarioActual()).thenReturn(yo);
+        when(usuarioRepository.findByUuid("uuid-otro")).thenReturn(Optional.of(otro));
+        when(bloqueoRepository.existeEntre(1, 2)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.enviarSolicitud("uuid-otro"))
+                .isInstanceOf(BadRequestException.class);
+        verify(amistadRepository, never()).save(any());
     }
 
     @Test

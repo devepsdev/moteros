@@ -20,17 +20,24 @@ public interface ConversacionRepository extends JpaRepository<Conversacion, Inte
 
     /**
      * Conversaciones de un usuario, la de actividad mas reciente primero (ultimo mensaje o,
-     * si no tiene, fecha de creacion). El orden va en la query: el Pageable ha de llegar sin sort.
+     * si no tiene, fecha de creacion). Se ocultan las conversaciones entre usuarios con un bloqueo.
+     * El orden va en la query: el Pageable ha de llegar sin sort.
      */
     @Query(value = """
             SELECT c FROM Conversacion c
-            WHERE c.usuario1.id = :usuarioId OR c.usuario2.id = :usuarioId
+            WHERE (c.usuario1.id = :usuarioId OR c.usuario2.id = :usuarioId)
+              AND NOT EXISTS (SELECT b FROM Bloqueo b
+                              WHERE (b.bloqueador = c.usuario1 AND b.bloqueado = c.usuario2)
+                                 OR (b.bloqueador = c.usuario2 AND b.bloqueado = c.usuario1))
             ORDER BY COALESCE((SELECT MAX(m.fechaEnvio) FROM Mensaje m WHERE m.conversacion = c),
                               c.fechaCreacion) DESC
             """,
             countQuery = """
             SELECT COUNT(c) FROM Conversacion c
-            WHERE c.usuario1.id = :usuarioId OR c.usuario2.id = :usuarioId
+            WHERE (c.usuario1.id = :usuarioId OR c.usuario2.id = :usuarioId)
+              AND NOT EXISTS (SELECT b FROM Bloqueo b
+                              WHERE (b.bloqueador = c.usuario1 AND b.bloqueado = c.usuario2)
+                                 OR (b.bloqueador = c.usuario2 AND b.bloqueado = c.usuario1))
             """)
     Page<Conversacion> findByParticipante(@Param("usuarioId") Integer usuarioId, Pageable pageable);
 }

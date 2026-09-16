@@ -10,6 +10,7 @@ import dev.deveps.moteros.entities.enums.TipoNotificacion;
 import dev.deveps.moteros.exceptions.BadRequestException;
 import dev.deveps.moteros.exceptions.ResourceNotFoundException;
 import dev.deveps.moteros.mapper.EntityDtoMapper;
+import dev.deveps.moteros.repositories.BloqueoRepository;
 import dev.deveps.moteros.repositories.ConversacionRepository;
 import dev.deveps.moteros.repositories.MensajeRepository;
 import dev.deveps.moteros.repositories.UsuarioRepository;
@@ -30,6 +31,7 @@ public class ChatServiceImpl implements ChatService {
     private final ConversacionRepository conversacionRepository;
     private final MensajeRepository mensajeRepository;
     private final UsuarioRepository usuarioRepository;
+    private final BloqueoRepository bloqueoRepository;
     private final UsuarioAutenticadoProvider usuarioAutenticado;
     private final NotificacionService notificacionService;
     private final EntityDtoMapper mapper;
@@ -71,6 +73,7 @@ public class ChatServiceImpl implements ChatService {
         if (yo.getId().equals(otro.getId())) {
             throw new BadRequestException("No puedes enviarte mensajes a ti mismo");
         }
+        exigirSinBloqueo(yo.getId(), otro.getId());
         Conversacion c = obtenerOCrearConversacion(yo, otro);
         return guardarMensaje(c, yo, otro, dto.getContenido());
     }
@@ -109,6 +112,16 @@ public class ChatServiceImpl implements ChatService {
     private void exigirParticipante(Conversacion c, Integer usuarioId) {
         if (!c.getUsuario1().getId().equals(usuarioId) && !c.getUsuario2().getId().equals(usuarioId)) {
             throw new BadRequestException("No formas parte de esta conversacion");
+        }
+        // Con un bloqueo de por medio la conversacion desaparece para los dos.
+        if (bloqueoRepository.existeEntre(c.getUsuario1().getId(), c.getUsuario2().getId())) {
+            throw new ResourceNotFoundException("Conversacion no encontrada: " + c.getUuid());
+        }
+    }
+
+    private void exigirSinBloqueo(Integer yoId, Integer otroId) {
+        if (bloqueoRepository.existeEntre(yoId, otroId)) {
+            throw new BadRequestException("No puedes enviar mensajes a este usuario");
         }
     }
 
