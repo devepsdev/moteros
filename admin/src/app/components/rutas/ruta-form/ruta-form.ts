@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin, of, switchMap } from 'rxjs';
 import { DIFICULTADES, TERRENOS, formatKm, longitudTrack } from '../../../core/labels';
+import { PuntoTrack, leerTrack, simplificar } from '../../../core/track';
 import { Dificultad, RutaRequest, RutaResponse, SugerenciaRuta, TipoTerreno } from '../../../models/api.model';
 import { toApiProblem } from '../../../services/api-error';
 import { ConfirmService } from '../../../services/confirm';
@@ -97,6 +98,36 @@ export class RutaForm {
 
   protected borrarRecorrido(): void {
     this.puntos.set([]);
+  }
+
+  /**
+   * Sustituye el recorrido por el de uno o varios ficheros GPX/KML. Varios ficheros se unen en
+   * orden de nombre (una ruta publicada por tramos: «parte 1», «parte 2»...).
+   */
+  protected async importarTrack(input: HTMLInputElement): Promise<void> {
+    const ficheros = Array.from(input.files ?? []).sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
+    input.value = '';
+    if (ficheros.length === 0) return;
+    try {
+      const todos: PuntoTrack[] = [];
+      for (const fichero of ficheros) {
+        todos.push(...leerTrack(await fichero.text(), fichero.name));
+      }
+      const simplificados = simplificar(todos);
+      const { puntoInicio, puntoFin } = this.form.getRawValue();
+      this.puntos.set(
+        simplificados.map((p, i) => ({
+          ...p,
+          nombre: i === 0 ? puntoInicio || null : i === simplificados.length - 1 ? puntoFin || null : null,
+        })),
+      );
+      this.sinCoordenadas.set([]);
+      this.notify.success(
+        `Recorrido importado: ${simplificados.length} puntos (de ${todos.length}) · ${formatKm(longitudTrack(simplificados))}.`,
+      );
+    } catch (cause: unknown) {
+      this.notify.error(cause instanceof Error ? cause.message : 'No se ha podido leer el fichero.');
+    }
   }
 
   protected save(): void {

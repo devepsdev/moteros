@@ -85,6 +85,17 @@
               </dd>
             </div>
           }
+          @if (s.enlacesTrack?.length) {
+            <div class="sm:col-span-3">
+              <dt class="label">Recorrido exacto en la fuente</dt>
+              <dd class="flex flex-wrap gap-2">
+                @for (enlace of s.enlacesTrack; track enlace.url) {
+                  <a [href]="enlace.url" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">{{ enlace.texto || 'Descargar recorrido' }} ↗</a>
+                }
+              </dd>
+              <dd class="mt-1 text-xs text-ink-faint">Descárgalo e impórtalo al crear la ruta para tener el trazado exacto.</dd>
+            </div>
+          }
           @if (s.descripcion) {
             <div class="sm:col-span-3"><dt class="label">Descripción</dt><dd class="whitespace-pre-line leading-relaxed">{{ s.descripcion }}</dd></div>
           }

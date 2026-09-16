@@ -1,5 +1,6 @@
 package dev.deveps.moteros.services.impl;
 
+import dev.deveps.moteros.dto.EnlaceTrackDTO;
 import dev.deveps.moteros.dto.PuntoSugeridoDTO;
 import dev.deveps.moteros.dto.SugerenciaRutaRequestDTO;
 import dev.deveps.moteros.dto.SugerenciaRutaResponseDTO;
@@ -60,6 +61,7 @@ class SugerenciaRutaServiceImplTest {
                 .puntos(List.of(
                         new PuntoSugeridoDTO("Sant Celoni", 41.689, 2.489),
                         new PuntoSugeridoDTO("Collformic", null, null)))
+                .enlacesTrack(List.of(new EnlaceTrackDTO("Descargar archivo GPX", "https://drive.example/gpx")))
                 .build();
     }
 
@@ -80,6 +82,7 @@ class SugerenciaRutaServiceImplTest {
         assertThat(resultado.getPuntos()).extracting(PuntoSugeridoDTO::getNombre).containsExactly("Sant Celoni", "Collformic");
         assertThat(resultado.getPuntos().get(0).getLatitud()).isEqualTo(41.689);
         assertThat(resultado.getPuntos().get(1).getLatitud()).isNull();
+        assertThat(resultado.getEnlacesTrack()).extracting(EnlaceTrackDTO::getUrl).containsExactly("https://drive.example/gpx");
     }
 
     @Test

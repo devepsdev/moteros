@@ -69,6 +69,10 @@ public class SugerenciaRuta {
     @Column(name = "puntos_json", columnDefinition = "TEXT")
     private String puntosJson;
 
+    /** Enlaces de la página de origen al recorrido exacto, serializados como JSON. */
+    @Column(name = "enlaces_track_json", columnDefinition = "TEXT")
+    private String enlacesTrackJson;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private EstadoSugerencia estado;

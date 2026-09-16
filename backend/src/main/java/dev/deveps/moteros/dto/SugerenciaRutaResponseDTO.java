@@ -31,6 +31,8 @@ public class SugerenciaRutaResponseDTO {
     private Dificultad dificultad;
     private TipoTerreno tipoTerreno;
     private List<PuntoSugeridoDTO> puntos;
+    /** Enlaces de la fuente al recorrido exacto (GPX, KML) para descargarlo e importarlo en el panel. */
+    private List<EnlaceTrackDTO> enlacesTrack;
     private EstadoSugerencia estado;
     /** Ruta creada a partir de la sugerencia (solo si esta aprobada y la ruta sigue existiendo). */
     private String rutaUuid;

@@ -8,6 +8,7 @@ export interface PuntoMapa {
 }
 
 const NARANJA = '#FF6A13';
+const MAX_MARCADORES = 40;
 const VISTA_ESPANA: L.LatLngTuple = [40.2, -3.7];
 
 /** Marcador redondo con número de orden (evita las imágenes de icono de Leaflet, que no se empaquetan). */
@@ -38,8 +39,8 @@ export class RutaMap implements AfterViewInit, OnDestroy {
   private readonly contenedor = viewChild.required<ElementRef<HTMLDivElement>>('contenedor');
   private mapa: L.Map | null = null;
   private capa = L.layerGroup();
-  /** Número de puntos con el que se encuadró por última vez: solo se reencuadra al cargar otra ruta. */
-  private encuadrados = -1;
+  /** Puntos en el último pintado: un salto de más de uno es una carga (ruta, sugerencia, GPX), no un clic. */
+  private ultimoTotal = 0;
 
   constructor() {
     effect(() => {
@@ -79,12 +80,16 @@ export class RutaMap implements AfterViewInit, OnDestroy {
     if (coords.length > 1) {
       L.polyline(coords, { color: NARANJA, weight: 5, opacity: 0.9 }).addTo(this.capa);
     }
+    // Con un track importado (cientos de puntos) solo se marcan salida y llegada: los números
+    // taparían el recorrido. Con pocos puntos se ven todos y se pueden arrastrar.
+    const detallado = puntos.length <= MAX_MARCADORES;
     puntos.forEach((p, i) => {
       const esExtremo = i === 0 || i === puntos.length - 1;
+      if (!detallado && !esExtremo) return;
       const color = i === 0 ? '#5FBF8A' : i === puntos.length - 1 && puntos.length > 1 ? '#F0625A' : NARANJA;
       const marcador = L.marker([p.latitud, p.longitud], {
         icon: icono(String(i + 1), color),
-        draggable: this.editable(),
+        draggable: this.editable() && detallado,
         zIndexOffset: esExtremo ? 1000 : 0,
       });
       if (p.nombre) marcador.bindTooltip(p.nombre);
@@ -97,12 +102,12 @@ export class RutaMap implements AfterViewInit, OnDestroy {
       marcador.addTo(this.capa);
     });
 
-    // En edición no se mueve la vista con cada clic; solo al cargar puntos por primera vez.
-    const debeEncuadrar = !this.editable() || this.encuadrados <= 0;
-    if (coords.length > 0 && debeEncuadrar && this.encuadrados !== coords.length) {
+    // En edición no se mueve la vista con cada clic o «Deshacer», solo cuando se carga un recorrido.
+    const esCarga = Math.abs(coords.length - this.ultimoTotal) > 1;
+    this.ultimoTotal = coords.length;
+    if (coords.length > 0 && (!this.editable() || esCarga)) {
       if (coords.length === 1) this.mapa.setView(coords[0], 12);
       else this.mapa.fitBounds(L.latLngBounds(coords), { padding: [32, 32] });
-      this.encuadrados = coords.length;
     }
   }
 }

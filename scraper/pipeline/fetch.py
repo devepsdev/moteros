@@ -1,6 +1,6 @@
 import hashlib
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from urllib.parse import urlsplit
 from urllib.robotparser import RobotFileParser
 
@@ -18,11 +18,19 @@ BLOCK_TAGS = ["p", "div", "li", "ul", "ol", "tr", "td", "th", "dt", "dd", "secti
               "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "table", "figcaption"]
 
 
+# Enlaces a ficheros con el recorrido exacto: por el texto del enlace («Descargar archivo GPX»)
+# o por la dirección (.gpx, .kml, Wikiloc). No se descargan aquí: muchos están en servicios
+# que no lo permiten a bots (Google Drive lo prohíbe en su robots.txt).
+TRACK_PATTERN = re.compile(r"\bgpx\b|\bkml\b|\.gpx(\?|$)|\.kml(\?|$)|wikiloc\.com/", re.IGNORECASE)
+MAX_ENLACES_TRACK = 5
+
+
 @dataclass
 class Page:
     url: str
     text: str
     content_hash: str
+    enlaces_track: list[dict] = field(default_factory=list)
 
 
 class Fetcher:
@@ -51,7 +59,8 @@ class Fetcher:
         if response.encoding is None or response.encoding.lower() == "iso-8859-1":
             response.encoding = response.apparent_encoding
         text = html_to_text(response.text)
-        return Page(url=url, text=text, content_hash=hashlib.sha256(text.encode("utf-8")).hexdigest())
+        return Page(url=url, text=text, content_hash=hashlib.sha256(text.encode("utf-8")).hexdigest(),
+                    enlaces_track=track_links(response.text))
 
     def _load_robots(self, origin: str) -> RobotFileParser | None:
         try:
@@ -84,3 +93,20 @@ def html_to_text(html: str) -> str:
         if line:
             lines.append(line)
     return "\n".join(lines)[:MAX_PAGE_CHARS]
+
+
+def track_links(html: str) -> list[dict]:
+    """Enlaces de la página al recorrido exacto (GPX, KML, Wikiloc), en orden y sin repetir."""
+    soup = BeautifulSoup(html, "html.parser")
+    enlaces, vistos = [], set()
+    for a in soup.find_all("a", href=True):
+        url = a["href"].strip()
+        texto = re.sub(r"\s+", " ", a.get_text(" ")).strip()
+        if not url.lower().startswith(("http://", "https://")) or url in vistos or len(url) > 1000:
+            continue
+        if TRACK_PATTERN.search(texto) or TRACK_PATTERN.search(url):
+            vistos.add(url)
+            enlaces.append({"texto": texto[:100] or "Recorrido", "url": url})
+            if len(enlaces) == MAX_ENLACES_TRACK:
+                break
+    return enlaces

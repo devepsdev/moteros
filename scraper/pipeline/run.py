@@ -53,6 +53,9 @@ def run(sources, *, fetcher, client, geocoder, api, state, dry_run=False, force=
 
             for ruta in rutas:
                 sugerencia = add_coordinates(ruta, geocoder)
+                # Solo con una ruta en la página se sabe a cuál pertenecen los enlaces al recorrido.
+                if len(rutas) == 1 and page.enlaces_track:
+                    sugerencia["enlacesTrack"] = page.enlaces_track
                 ubicados = sum(1 for p in sugerencia["puntos"] if p["latitud"] is not None)
                 if dry_run:
                     logger.info("  (simulación) %s", json.dumps(sugerencia, ensure_ascii=False))

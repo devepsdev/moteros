@@ -17,6 +17,11 @@
 # prueba desde la Orange Pi (2026-09-15): Motocard y Komobi responden 403 al scraper, y la de
 # Patou Pallars no describe ninguna ruta con recorrido. Motoviajeros solo da rutas por regiones
 # ("Asturias → Andalucía") y todas se descartan.
+#
+# Catalunya (2026-09-16): las fichas de Catalunya en Moto enlazan el recorrido en GPX o KML alojado
+# en Google Drive; el scraper guarda el enlace (Drive no permite la descarga a bots) y se importa
+# en el panel. La Guia Vial queda fuera hasta pedirles permiso: es un proyecto personal con miles
+# de páginas.
 
 sources:
   # ------------------------------------------------ oficiales: Turismo Burgos (Sodebur)
@@ -51,3 +56,53 @@ sources:
   - nombre: Casa Manolón · Occidente de Asturias
     url: https://casamanolon.es/las-mejores-rutas-moteras-del-occidente-de-asturias/
     provincia: Asturias
+
+  # ------------------------------------------------ Catalunya en Moto (una ficha por ruta, con GPX o KML)
+  - nombre: Catalunya en Moto · Lo mejor de ambos mundos
+    url: https://catalunyaenmoto.com/es/donde-ir-en-moto/lo-mejor-de-ambos-mundos-ruta-en-moto/
+
+  - nombre: Catalunya en Moto · Puños fuera
+    url: https://catalunyaenmoto.com/es/donde-ir-en-moto/punos-fuera-ruta-en-moto/
+
+  - nombre: Catalunya en Moto · Bienvenidos a la Catalunya Nord
+    url: https://catalunyaenmoto.com/es/donde-ir-en-moto/rutas-en-moto/bienvenidos-a-la-catalunya-nord-ruta-en-moto/
+
+  - nombre: Catalunya en Moto · Vuelta a Catalunya · Costa Brava
+    url: https://catalunyaenmoto.com/es/donde-ir-en-moto/rutas-en-moto/la-vuelta-a-catalunya-en-moto-la-costa-brava/
+
+  - nombre: Catalunya en Moto · Las 4 caras de la montaña de Prades
+    url: https://catalunyaenmoto.com/es/donde-ir-en-moto/rutas-en-moto/las-4-caras-de-la-montana-de-prades-ruta-en-moto/
+
+  - nombre: Catalunya en Moto · Les Guilleries
+    url: https://catalunyaenmoto.com/es/donde-ir-en-moto/rutas-en-moto/les-guilleries-ruta-en-moto/
+
+  - nombre: Catalunya en Moto · Los pasos de barca del Ebro
+    url: https://catalunyaenmoto.com/es/donde-ir-en-moto/rutas-en-moto/los-pasos-de-barca-del-ebro/
+
+  - nombre: Catalunya en Moto · Mucho más que la Collada
+    url: https://catalunyaenmoto.com/es/donde-ir-en-moto/rutas-en-moto/mucho-mas-que-la-collada-ruta-en-moto/
+
+  - nombre: Catalunya en Moto · Procesión a Montserrat
+    url: https://catalunyaenmoto.com/es/donde-ir-en-moto/rutas-en-moto/procesion-a-montserrat-ruta-en-moto/
+
+  - nombre: Catalunya en Moto · Sant Llorenç del Munt i l'Obac
+    url: https://catalunyaenmoto.com/es/donde-ir-en-moto/rutas-en-moto/ruta-en-moto-parque-natural-de-sant-llorenc-i-lobac/
+
+  - nombre: Catalunya en Moto · Tossa 365 curvas
+    url: https://catalunyaenmoto.com/es/donde-ir-en-moto/rutas-en-moto/ruta-tossa-365-curvas-catalunya-en-moto/
+
+  - nombre: Catalunya en Moto · Vuelta a Catalunya · Costa Daurada
+    url: https://catalunyaenmoto.com/es/donde-ir-en-moto/rutas-en-moto/vuelta-a-catalunya-en-moto-costa-dorada/
+
+  - nombre: Catalunya en Moto · Vuelta a Catalunya · Pirineus
+    url: https://catalunyaenmoto.com/es/donde-ir-en-moto/rutas-en-moto/vuelta-a-catalunya-en-moto-los-pirineos/
+
+  # ------------------------------------------------ artículos con varias rutas por Catalunya
+  - nombre: Catalunya.com · 7 rutas en moto
+    url: https://www.catalunya.com/en/continguts/article/7-scenic-motorbike-routes-catalonia-26-1-272
+
+  - nombre: Motociclismo · Rutas por Cataluña
+    url: https://www.motociclismo.es/rutas/rutas-moto-cataluna-nzm_247884_102.html
+
+  - nombre: Motoviajeros · Grand Tour de Catalunya
+    url: https://motoviajeros.es/grand-tour-5-itinerarios-para-recorrer-cataluna/

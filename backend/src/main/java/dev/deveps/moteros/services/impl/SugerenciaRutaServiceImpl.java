@@ -1,5 +1,6 @@
 package dev.deveps.moteros.services.impl;
 
+import dev.deveps.moteros.dto.EnlaceTrackDTO;
 import dev.deveps.moteros.dto.PuntoSugeridoDTO;
 import dev.deveps.moteros.dto.SugerenciaRutaRequestDTO;
 import dev.deveps.moteros.dto.SugerenciaRutaResponseDTO;
@@ -40,6 +41,7 @@ public class SugerenciaRutaServiceImpl implements SugerenciaRutaService {
 
     private static final JsonMapper JSON = JsonMapper.builder().build();
     private static final TypeReference<List<PuntoSugeridoDTO>> LISTA_PUNTOS = new TypeReference<>() { };
+    private static final TypeReference<List<EnlaceTrackDTO>> LISTA_ENLACES = new TypeReference<>() { };
 
     private final SugerenciaRutaRepository sugerenciaRepository;
     private final RutaRepository rutaRepository;
@@ -80,6 +82,7 @@ public class SugerenciaRutaServiceImpl implements SugerenciaRutaService {
                 .dificultad(dto.getDificultad())
                 .tipoTerreno(dto.getTipoTerreno())
                 .puntosJson(dto.getPuntos() == null || dto.getPuntos().isEmpty() ? null : JSON.writeValueAsString(dto.getPuntos()))
+                .enlacesTrackJson(dto.getEnlacesTrack() == null || dto.getEnlacesTrack().isEmpty() ? null : JSON.writeValueAsString(dto.getEnlacesTrack()))
                 .estado(EstadoSugerencia.pendiente)
                 .build();
         return toResponse(sugerenciaRepository.save(sugerencia));
@@ -153,7 +156,8 @@ public class SugerenciaRutaServiceImpl implements SugerenciaRutaService {
                 .duracionEstimadaMin(s.getDuracionEstimadaMin())
                 .dificultad(s.getDificultad())
                 .tipoTerreno(s.getTipoTerreno())
-                .puntos(leerPuntos(s.getPuntosJson()))
+                .puntos(leerJson(s.getPuntosJson(), LISTA_PUNTOS))
+                .enlacesTrack(leerJson(s.getEnlacesTrackJson(), LISTA_ENLACES))
                 .estado(s.getEstado())
                 .rutaUuid(s.getRuta() != null ? s.getRuta().getUuid() : null)
                 .motivoRechazo(s.getMotivoRechazo())
@@ -162,14 +166,14 @@ public class SugerenciaRutaServiceImpl implements SugerenciaRutaService {
                 .build();
     }
 
-    private static List<PuntoSugeridoDTO> leerPuntos(String json) {
+    private static <T> List<T> leerJson(String json, TypeReference<List<T>> tipo) {
         if (json == null || json.isBlank()) {
             return List.of();
         }
         try {
-            return JSON.readValue(json, LISTA_PUNTOS);
+            return JSON.readValue(json, tipo);
         } catch (JacksonException e) {
-            // Un JSON corrupto no debe impedir revisar la sugerencia: se muestra sin puntos.
+            // Un JSON corrupto no debe impedir revisar la sugerencia: se muestra sin ese dato.
             return List.of();
         }
     }

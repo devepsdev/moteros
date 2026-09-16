@@ -107,6 +107,11 @@ export interface PuntoSugerido {
   longitud: number | null;
 }
 
+export interface EnlaceTrack {
+  texto: string | null;
+  url: string;
+}
+
 export interface SugerenciaRuta {
   uuid: string;
   autor: UsuarioSummary | null;
@@ -120,6 +125,8 @@ export interface SugerenciaRuta {
   dificultad: Dificultad | null;
   tipoTerreno: TipoTerreno | null;
   puntos: PuntoSugerido[];
+  /** Enlaces de la fuente al recorrido exacto (GPX, KML) para descargarlo e importarlo. */
+  enlacesTrack: EnlaceTrack[] | null;
   estado: EstadoSugerencia;
   rutaUuid: string | null;
   motivoRechazo: string | null;

@@ -58,4 +58,8 @@ public class SugerenciaRutaRequestDTO {
     @Valid
     @Size(max = 60, message = "Como maximo 60 puntos de paso")
     private List<PuntoSugeridoDTO> puntos;
+
+    @Valid
+    @Size(max = 5, message = "Como maximo 5 enlaces al recorrido")
+    private List<EnlaceTrackDTO> enlacesTrack;
 }

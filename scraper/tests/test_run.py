@@ -10,9 +10,12 @@ RUTAS = [
 ]
 
 
+ENLACES = [{"texto": "Descargar archivo GPX", "url": "https://drive.example/gpx"}]
+
+
 class FakeFetcher:
-    def __init__(self, text="página", allowed=True, error=None):
-        self.text, self._allowed, self.error = text, allowed, error
+    def __init__(self, text="página", allowed=True, error=None, enlaces=None):
+        self.text, self._allowed, self.error, self.enlaces = text, allowed, error, enlaces or []
 
     def allowed(self, url):
         return self._allowed
@@ -20,7 +23,7 @@ class FakeFetcher:
     def fetch(self, url):
         if self.error:
             raise self.error
-        return Page(url=url, text=self.text, content_hash=f"hash-{self.text}")
+        return Page(url=url, text=self.text, content_hash=f"hash-{self.text}", enlaces_track=self.enlaces)
 
 
 class FakeClient:
@@ -87,3 +90,14 @@ def test_robots_y_errores_no_paran_la_pasada():
 
     failed = _run(State(":memory:"), FakeClient(RUTAS), FakeApi([]), fetcher=FakeFetcher(error=RuntimeError("caída")))
     assert failed.failed_sources == ["Rutas"]
+
+
+def test_los_enlaces_al_recorrido_solo_se_envian_si_la_pagina_tiene_una_ruta():
+    una = FakeApi(["created"])
+    _run(State(":memory:"), FakeClient(RUTAS[:1]), una, fetcher=FakeFetcher(enlaces=ENLACES))
+    assert una.sent[0]["enlacesTrack"] == ENLACES
+
+    # Con varias rutas en la página no se sabe de cuál es el GPX: no se adjunta a ninguna.
+    varias = FakeApi(["created", "created"])
+    _run(State(":memory:"), FakeClient(RUTAS), varias, fetcher=FakeFetcher(enlaces=ENLACES))
+    assert all("enlacesTrack" not in s for s in varias.sent)

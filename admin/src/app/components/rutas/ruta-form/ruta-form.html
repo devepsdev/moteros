@@ -12,6 +12,15 @@
         <a [href]="s.urlFuente" target="_blank" rel="noopener noreferrer" class="text-accent underline-offset-2 hover:underline">la fuente</a>.
         Compruébalos antes de publicar. Al guardar, la sugerencia queda aprobada.
       </p>
+      @if (s.enlacesTrack?.length) {
+        <div class="mt-3 flex flex-wrap items-center gap-2">
+          <span class="text-ink-muted">La fuente ofrece el recorrido exacto:</span>
+          @for (enlace of s.enlacesTrack; track enlace.url) {
+            <a [href]="enlace.url" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">{{ enlace.texto || 'Descargar recorrido' }} ↗</a>
+          }
+        </div>
+        <p class="mt-2 text-ink-muted">Descárgalo y pulsa <strong class="text-ink">Importar GPX o KML</strong> junto al mapa para usarlo en lugar de los pueblos unidos.</p>
+      }
       @if (sinCoordenadas().length > 0) {
         <p class="mt-2 text-ink-muted">
           Sin ubicar en el mapa: <strong class="text-ink">{{ sinCoordenadas().join(', ') }}</strong>. Márcalos a mano si forman parte del recorrido.
@@ -30,10 +39,13 @@
             Haz clic en el mapa para marcar la salida y sigue marcando el recorrido.
           } @else {
             {{ puntos().length }} {{ puntos().length === 1 ? 'punto' : 'puntos' }} ·
-            <strong class="text-ink">{{ formatKm(distancia()) }}</strong> · arrastra un punto para moverlo
+            <strong class="text-ink">{{ formatKm(distancia()) }}</strong>
+            {{ puntos().length <= 40 ? '· arrastra un punto para moverlo' : '' }}
           }
         </p>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
+          <input #ficheroTrack type="file" accept=".gpx,.kml,application/gpx+xml,application/vnd.google-earth.kml+xml" multiple class="hidden" (change)="importarTrack(ficheroTrack)" />
+          <button type="button" class="btn btn-secondary btn-sm" (click)="ficheroTrack.click()" title="Uno o varios ficheros; varios se unen por orden de nombre">Importar GPX o KML</button>
           <button type="button" class="btn btn-secondary btn-sm" [disabled]="puntos().length === 0" (click)="deshacer()">Deshacer</button>
           <button type="button" class="btn btn-danger btn-sm" [disabled]="puntos().length === 0" (click)="borrarRecorrido()">Borrar recorrido</button>
         </div>
