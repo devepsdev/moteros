@@ -31,6 +31,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     long countByRol(RolUsuario rol);
 
+    java.util.List<Usuario> findByRolAndActivoTrue(RolUsuario rol);
+
     long countByActivoTrue();
 
     /** Fechas de alta de todos los usuarios; el agrupado por mes se hace en el servicio (portable MySQL/H2). */

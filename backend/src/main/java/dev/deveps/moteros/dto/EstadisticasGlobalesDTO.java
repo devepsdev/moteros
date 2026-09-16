@@ -41,6 +41,9 @@ public class EstadisticasGlobalesDTO {
     /** Rutas sugeridas por el scraper pendientes de revisar (tareas del panel). */
     private long sugerenciasPendientes;
 
+    /** Denuncias de contenido pendientes de revisar. */
+    private long denunciasPendientes;
+
     // ===== DESGLOSES (clave = valor del enum) =====
     private Map<String, Long> rutasPorDificultad;
 

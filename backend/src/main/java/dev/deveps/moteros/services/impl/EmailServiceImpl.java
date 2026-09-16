@@ -21,6 +21,9 @@ public class EmailServiceImpl implements EmailService {
     @Value("${spring.mail.username}")
     private String remitente;
 
+    @Value("${app.admin-url:https://moteros.deveps.dev/admin/}")
+    private String urlPanel;
+
     @Value("${security.password-reset.expiration-minutes:15}")
     private long minutosValidez;
 
@@ -40,6 +43,30 @@ public class EmailServiceImpl implements EmailService {
         } catch (MessagingException | java.io.UnsupportedEncodingException e) {
             log.error("Error al enviar el email de recuperación a {}: {}", para, e.getMessage());
             throw new IllegalStateException("No se ha podido enviar el email de recuperación", e);
+        }
+    }
+
+    @Override
+    public void avisarDenuncia(String para, String tipo, String motivo) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+
+            helper.setFrom(remitente, "moter@s");
+            helper.setTo(para);
+            helper.setSubject("Denuncia nueva por revisar - moter@s");
+            helper.setText("""
+                    Hay una denuncia nueva en moter@s.
+
+                    Contenido: %s
+                    Motivo: %s
+
+                    Revísala en el panel: %s
+                    """.formatted(tipo, motivo, urlPanel + "denuncias"), false);
+
+            mailSender.send(message);
+        } catch (MessagingException | java.io.UnsupportedEncodingException e) {
+            throw new IllegalStateException("No se ha podido enviar el aviso de denuncia", e);
         }
     }
 

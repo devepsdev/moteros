@@ -1,6 +1,8 @@
 package dev.deveps.moteros.services.impl;
 
+import dev.deveps.moteros.entities.enums.EstadoDenuncia;
 import dev.deveps.moteros.entities.enums.EstadoSugerencia;
+import dev.deveps.moteros.repositories.DenunciaRepository;
 import dev.deveps.moteros.repositories.SugerenciaRutaRepository;
 import dev.deveps.moteros.services.RefreshTokenService;
 import dev.deveps.moteros.dto.EstadisticasGlobalesDTO;
@@ -52,6 +54,7 @@ public class AdminServiceImpl implements AdminService {
     private final ValoracionRutaRepository valoracionRutaRepository;
     private final AmistadRepository amistadRepository;
     private final SugerenciaRutaRepository sugerenciaRutaRepository;
+    private final DenunciaRepository denunciaRepository;
     private final RefreshTokenService refreshTokenService;
     private final EntityDtoMapper mapper;
 
@@ -70,6 +73,7 @@ public class AdminServiceImpl implements AdminService {
                 .valoraciones(valoracionRutaRepository.count())
                 .amistadesAceptadas(amistadRepository.countByEstado(EstadoAmistad.aceptada))
                 .sugerenciasPendientes(sugerenciaRutaRepository.countByEstado(EstadoSugerencia.pendiente))
+                .denunciasPendientes(denunciaRepository.countByEstado(EstadoDenuncia.pendiente))
                 .rutasPorDificultad(aMapa(rutaRepository.contarPorDificultad()))
                 .rutasPorTerreno(aMapa(rutaRepository.contarPorTerreno()))
                 .motosPorTipo(aMapa(motoRepository.contarPorTipo()))
