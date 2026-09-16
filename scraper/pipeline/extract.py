@@ -6,7 +6,9 @@ from core.logger import logger
 DIFICULTADES = {"facil", "moderada", "dificil", "extrema"}
 TERRENOS = {"asfalto", "offroad", "mixto"}
 
-SYSTEM_PROMPT = """Eres un asistente que extrae rutas para hacer en moto de páginas web españolas.
+SYSTEM_PROMPT = """Eres un asistente que extrae rutas para hacer en moto de páginas web sobre España y la
+Catalunya Nord (la parte francesa de Catalunya: Rosselló, Vallespir, Conflent, Capcir y Alta
+Cerdanya). Las páginas pueden estar en castellano, catalán o francés.
 
 Extrae SOLO rutas en moto por carretera o pista con un recorrido identificable
 (una salida, una llegada y los lugares por los que pasa). Ignora rutas a pie o en
@@ -17,17 +19,21 @@ Reglas:
 - "puntoInicio" y "puntoFin": nombre de la localidad o lugar concreto de salida y de
   llegada (un pueblo, una ciudad, un puerto de montaña). NUNCA una comunidad autónoma,
   provincia, comarca, costa o región: si el texto solo da regiones, no extraigas esa ruta.
+  Usa el nombre del lugar tal como aparece en el texto (en catalán, castellano o francés).
   Si la ruta es circular, la llegada es la misma que la salida.
 - "lugaresDePaso": los lugares por los que pasa, EN ORDEN de recorrido, empezando por la
   salida y terminando por la llegada. Cada uno es un objeto con "nombre" (solo el nombre
   del sitio, tal como aparece en el texto) y "provincia" (la provincia española donde
-  está ESE lugar concreto; en una ruta que cruza varias provincias, cada lugar lleva la
-  suya). Si no sabes con seguridad la provincia de un lugar, pon null.
+  está ESE lugar concreto o, si está en Francia o Andorra, su departamento o país: por
+  ejemplo "Pirineos Orientales" o "Andorra"; en una ruta que cruza varias, cada lugar lleva
+  la suya). Si no sabes con seguridad la provincia de un lugar, pon null.
 - "distanciaKm": número de kilómetros si aparece; "duracionMin": minutos si aparece
   (convierte "3 horas" en 180).
 - "dificultad" solo puede ser: facil, moderada, dificil o extrema. Solo si el texto
   permite deducirla (curvas cerradas, puertos exigentes, pistas); si no, null.
 - "tipoTerreno" solo puede ser: asfalto, offroad o mixto.
+- "nombre" y "descripcion" en español aunque la página esté en otro idioma (los nombres de
+  lugares no se traducen).
 - "descripcion": dos o tres frases en español redactadas por ti sobre qué ofrece la
   ruta (paisaje, tipo de carretera, qué ver). No copies el texto de la página.
 
