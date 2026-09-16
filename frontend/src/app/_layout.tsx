@@ -62,6 +62,7 @@ function RootNavigator() {
           <Stack.Screen name="usuario/[uuid]" />
           <Stack.Screen name="cuenta/datos" />
           <Stack.Screen name="cuenta/contrasena" />
+          <Stack.Screen name="cuenta/bloqueados" />
           <Stack.Screen name="cuenta/eliminar" />
           <Stack.Screen name="quedada/[uuid]" />
           <Stack.Screen name="quedada/nueva" />

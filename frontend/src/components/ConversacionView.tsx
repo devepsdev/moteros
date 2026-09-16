@@ -5,6 +5,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { LoadingView } from "@/components/ui/ListFooter";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
+import { confirmarBloqueo } from "@/lib/bloqueo";
 import { describeError } from "@/lib/errors";
 import { fechaDeApi, formatDia, formatHora } from "@/lib/format";
 import { refrescarNoLeidos } from "@/lib/noLeidos";
@@ -106,6 +107,17 @@ export function ConversacionView({ conversacionUuid: uuidInicial, interlocutor }
             {interlocutor.nombre}
           </Text>
         </Pressable>
+        <IconButton
+          name="more-vertical"
+          accessibilityLabel="Más opciones"
+          onPress={() =>
+            // Tras bloquear, la conversación deja de existir para los dos.
+            confirmarBloqueo({ uuid: interlocutor.uuid, nombre: interlocutor.nombre }, () => {
+              refrescarNoLeidos();
+              router.replace("/chat");
+            })
+          }
+        />
       </View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>

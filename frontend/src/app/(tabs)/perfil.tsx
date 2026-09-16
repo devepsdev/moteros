@@ -41,6 +41,7 @@ export default function PerfilScreen() {
     ...(user.rol === "admin" ? [{ icon: "shield" as const, label: "Administración", href: "/admin" as Href }] : []),
     { icon: "user", label: "Datos personales", href: "/cuenta/datos" },
     { icon: "lock", label: "Cambiar contraseña", href: "/cuenta/contrasena" },
+    { icon: "slash", label: "Usuarios bloqueados", href: "/cuenta/bloqueados" },
     { icon: "log-out", label: "Cerrar sesión", onPress: confirmarLogout },
     { icon: "trash-2", label: "Eliminar cuenta", href: "/cuenta/eliminar", danger: true },
   ];
