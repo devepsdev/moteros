@@ -66,3 +66,6 @@ eas env:create --name GOOGLE_MAPS_API_KEY --value <clave> --environment producti
 eas build -p android --profile preview      # APK
 eas build -p android --profile production   # AAB para Play Store
 ```
+
+Para la ficha de Google Play (páginas legales, seguridad de los datos, permisos, cuenta de prueba
+para la revisión): [GOOGLE-PLAY.md](GOOGLE-PLAY.md).
