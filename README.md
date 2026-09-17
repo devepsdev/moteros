@@ -2,12 +2,16 @@
 
 Red social para moteros y sus rutas: perfiles y motos, rutas con geolocalización y track,
 quedadas, muro social (publicaciones, comentarios, likes), amistades, chat privado 1‑a‑1 y
-notificaciones. App Android con Expo sobre una API REST en Spring Boot.
+notificaciones. Incluye bloqueos entre usuarios, denuncias de contenido con moderación desde el
+panel y páginas legales públicas, como pide Google Play. App Android con Expo sobre una API REST en
+Spring Boot.
 
 | Entorno | URL |
 |---|---|
 | API producción | `https://moteros.deveps.dev` |
 | Health | `https://moteros.deveps.dev/health` |
+| Panel de administración | `https://moteros.deveps.dev/admin/` |
+| Privacidad · términos · eliminar cuenta | `/privacidad` · `/terminos` · `/eliminar-cuenta` |
 
 ---
 
@@ -25,7 +29,7 @@ moter@s/
 │   │   ├── mapper/        EntityDtoMapper
 │   │   ├── security/      JWT (access + refresh rotatorio), filtro, SecurityConfig
 │   │   └── config/        OpenAPI, WebConfig (uploads)
-│   ├── src/test/         92 tests (JUnit 5, @DataJpaTest con H2, Mockito, MockMvc)
+│   ├── src/test/         130 tests (JUnit 5, @DataJpaTest con H2, Mockito, MockMvc)
 │   └── deploy/           Artefactos y runbook de despliegue en VPS  →  deploy/DEPLOY.md
 ├── admin/                Panel web de administración (Angular 21 + Tailwind 4) → moteros.deveps.dev/admin/
 ├── scraper/              Agente en Python que propone rutas a la bandeja del panel → scraper/README.md
@@ -83,7 +87,15 @@ Perfiles: por defecto usa `application.properties` (`ddl-auto=validate`). El per
 
 Recursos principales: `/api/usuarios`, `/api/motos`, `/api/rutas` (+ `/puntos`, `/valoraciones`),
 `/api/quedadas` (+ `/inscripciones`), `/api/publicaciones` (+ `/comentarios`, `/like`),
-`/api/amistades`, `/api/chat`, `/api/notificaciones`, `/api/admin`.
+`/api/amistades`, `/api/bloqueos`, `/api/denuncias`, `/api/chat`, `/api/notificaciones`, `/api/admin`.
+
+- **Registro**: exige `aceptaTerminos` (la casilla de la app) y guarda la fecha de aceptación.
+- **Bloqueos**: `/api/bloqueos` corta mensajes, solicitudes y visibilidad del contenido en los dos
+  sentidos. **Denuncias**: `POST /api/denuncias` guarda una copia del contenido denunciado y avisa
+  por correo a los administradores; se resuelven en `/api/admin/denuncias`.
+- **Páginas legales**: `/privacidad`, `/terminos` y `/eliminar-cuenta` son públicas (HTML estático en
+  `backend/src/main/resources/static/legal`). Requisitos de la ficha de Play:
+  [`frontend/GOOGLE-PLAY.md`](frontend/GOOGLE-PLAY.md).
 
 ---
 
@@ -104,7 +116,8 @@ no es administradora se cierra la sesión en el acto.
 
 Pantallas: resumen con tareas pendientes, rutas (listado con búsqueda, alta y edición trazando el
 recorrido sobre un mapa de OpenStreetMap), sugerencias del scraper (revisión con vista previa del
-recorrido, alta de la ruta precargada y rechazo) y usuarios (roles, incluido `scraper`, y bajas).
+recorrido, alta de la ruta precargada y rechazo), denuncias (copia del contenido denunciado, borrado
+del contenido y baja del autor) y usuarios (roles, incluido `scraper`, y bajas).
 
 En local, con el backend en el puerto 8080:
 
