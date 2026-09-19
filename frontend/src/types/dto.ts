@@ -155,6 +155,8 @@ export interface RutaResponse extends RutaSummary {
   longitudFin: number | null;
   fechaCreacion: string;
   puntos: PuntoRuta[] | null;
+  /** Recorrido por carretera como polilínea codificada; null si hay que unir los puntos. */
+  trazado?: string | null;
 }
 
 export interface RutaRequest {
@@ -366,4 +368,11 @@ export interface EstadisticasGlobales {
   topRutasPorValoracion: RutaSummary[];
   /** Mes en formato "YYYY-MM". */
   altasUsuariosPorMes: { mes: string; total: number }[];
+}
+
+/** Vista previa del recorrido por carretera mientras se dibuja una ruta. */
+export interface TrazadoPreview {
+  trazado: string | null;
+  distanciaKm: number | null;
+  duracionMin: number | null;
 }

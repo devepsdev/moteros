@@ -99,7 +99,7 @@ export default function RutaDetalleScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + theme.spacing.huge }}>
         <View style={{ height: 320, backgroundColor: theme.colors.surfaceSunken }}>
           {track.length > 0 ? (
-            <RutaMap puntos={track} />
+            <RutaMap puntos={track} trazado={r.trazado} />
           ) : (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
               <Feather name="map" size={40} color={theme.colors.inkFaint} />

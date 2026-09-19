@@ -5,6 +5,7 @@ import type {
   RutaResponse,
   RutaSummary,
   TipoTerreno,
+  TrazadoPreview,
   ValoracionRequest,
   ValoracionRuta,
 } from "@/types/dto";
@@ -64,4 +65,12 @@ export function valorar(uuid: string, data: ValoracionRequest): Promise<Valoraci
 
 export function eliminarMiValoracion(uuid: string): Promise<void> {
   return request<void>(`/api/rutas/${uuid}/valoraciones`, { method: "DELETE" });
+}
+
+/** Recorrido por carretera entre los puntos marcados (sin guardar nada). */
+export function trazado(puntos: { latitud: number; longitud: number }[]): Promise<TrazadoPreview> {
+  return request<TrazadoPreview>("/api/rutas/trazado", {
+    method: "POST",
+    body: { puntos: puntos.map((p) => ({ latitud: p.latitud, longitud: p.longitud })) },
+  });
 }

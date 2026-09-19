@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, effect, input, output, viewChild } from '@angular/core';
 import * as L from 'leaflet';
+import { decodificarPolilinea } from '../../../core/trazado';
 
 export interface PuntoMapa {
   latitud: number;
@@ -34,6 +35,8 @@ function icono(texto: string, color: string): L.DivIcon {
 export class RutaMap implements AfterViewInit, OnDestroy {
   readonly puntos = input<PuntoMapa[]>([]);
   readonly editable = input(false);
+  /** Recorrido por carretera (polilínea codificada); sin él, la línea une los puntos en recto. */
+  readonly trazado = input<string | null | undefined>(null);
   readonly puntosChange = output<PuntoMapa[]>();
 
   private readonly contenedor = viewChild.required<ElementRef<HTMLDivElement>>('contenedor');
@@ -45,6 +48,7 @@ export class RutaMap implements AfterViewInit, OnDestroy {
   constructor() {
     effect(() => {
       const puntos = this.puntos();
+      this.trazado();
       if (this.mapa) this.pintar(puntos);
     });
   }
@@ -77,8 +81,10 @@ export class RutaMap implements AfterViewInit, OnDestroy {
     this.capa.clearLayers();
     const coords = puntos.map((p) => [p.latitud, p.longitud] as L.LatLngTuple);
 
-    if (coords.length > 1) {
-      L.polyline(coords, { color: NARANJA, weight: 5, opacity: 0.9 }).addTo(this.capa);
+    const trazado = this.trazado();
+    const linea = trazado ? (decodificarPolilinea(trazado) as L.LatLngTuple[]) : coords;
+    if (linea.length > 1) {
+      L.polyline(linea, { color: NARANJA, weight: 5, opacity: 0.9 }).addTo(this.capa);
     }
     // Con un track importado (cientos de puntos) solo se marcan salida y llegada: los números
     // taparían el recorrido. Con pocos puntos se ven todos y se pueden arrastrar.
@@ -107,7 +113,7 @@ export class RutaMap implements AfterViewInit, OnDestroy {
     this.ultimoTotal = coords.length;
     if (coords.length > 0 && (!this.editable() || esCarga)) {
       if (coords.length === 1) this.mapa.setView(coords[0], 12);
-      else this.mapa.fitBounds(L.latLngBounds(coords), { padding: [32, 32] });
+      else this.mapa.fitBounds(L.latLngBounds(linea.length > 1 ? linea : coords), { padding: [32, 32] });
     }
   }
 }

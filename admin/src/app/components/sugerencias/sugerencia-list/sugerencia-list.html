@@ -64,8 +64,10 @@
         <p class="mt-1 text-ink-muted">{{ s.puntoInicio }} → {{ s.puntoFin }}</p>
 
         @if (puntosMapa().length > 0) {
-          <app-ruta-map class="mt-5 h-72" [puntos]="puntosMapa()" />
-          <p class="mt-2 text-xs text-ink-faint">Recorrido aproximado uniendo los lugares de paso geolocalizados.</p>
+          <app-ruta-map class="mt-5 h-72" [puntos]="puntosMapa()" [trazado]="trazadoMapa()?.trazado" />
+          <p class="mt-2 text-xs text-ink-faint">
+            {{ trazadoMapa() ? 'Recorrido por carretera entre los lugares de paso geolocalizados (' + formatKm(trazadoMapa()!.distanciaKm) + ').' : 'Recorrido aproximado uniendo en recto los lugares de paso geolocalizados.' }}
+          </p>
         }
 
         <dl class="mt-6 grid gap-5 sm:grid-cols-3">

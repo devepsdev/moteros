@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin, of, switchMap } from 'rxjs';
 import { DIFICULTADES, TERRENOS, formatKm, longitudTrack } from '../../../core/labels';
+import { trazadoPorCarretera } from '../../../core/trazado';
 import { PuntoTrack, leerTrack, simplificar } from '../../../core/track';
 import { Dificultad, RutaRequest, RutaResponse, SugerenciaRuta, TipoTerreno } from '../../../models/api.model';
 import { toApiProblem } from '../../../services/api-error';
@@ -57,7 +58,9 @@ export class RutaForm {
   protected readonly formError = signal<string | null>(null);
   protected readonly serverErrors = signal<Record<string, string>>({});
   protected readonly puntos = signal<PuntoMapa[]>([]);
-  protected readonly distancia = computed(() => longitudTrack(this.puntos()));
+  /** Recorrido por carretera de los puntos marcados; la distancia pasa a ser la real. */
+  protected readonly trazado = trazadoPorCarretera(this.puntos, this.rutas);
+  protected readonly distancia = computed(() => this.trazado()?.distanciaKm ?? longitudTrack(this.puntos()));
   protected readonly sugerenciaCargada = signal<SugerenciaRuta | null>(null);
   /** Lugares de la sugerencia que no se pudieron geolocalizar: el admin los marca a mano. */
   protected readonly sinCoordenadas = signal<string[]>([]);

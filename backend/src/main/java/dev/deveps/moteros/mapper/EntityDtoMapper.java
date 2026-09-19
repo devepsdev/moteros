@@ -142,6 +142,7 @@ public class EntityDtoMapper {
                 .valoracionMedia(valoracionMedia)
                 .numValoraciones(numValoraciones)
                 .puntos(puntos)
+                .trazado(r.getTrazado() == null || r.getTrazado().isEmpty() ? null : r.getTrazado())
                 .build();
     }
 

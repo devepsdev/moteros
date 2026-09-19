@@ -54,4 +54,7 @@ public class RutaResponseDTO {
 
     /** Waypoints ordenados por {@code orden}. Puede venir vacio en listados. */
     private List<PuntoRutaResponseDTO> puntos;
+
+    /** Recorrido por carretera (polilinea codificada, precision 5); null si hay que unir los puntos. */
+    private String trazado;
 }

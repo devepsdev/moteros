@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
-import { ApiResponse, PageResponse, RutaRequest, RutaResponse, RutaSummary } from '../models/api.model';
+import { ApiResponse, PageResponse, RutaRequest, RutaResponse, RutaSummary, TrazadoPreview } from '../models/api.model';
 
 @Injectable({ providedIn: 'root' })
 export class RutaService {
@@ -23,6 +23,13 @@ export class RutaService {
 
   update(uuid: string, request: RutaRequest): Observable<RutaResponse> {
     return this.http.put<ApiResponse<RutaResponse>>(`/api/rutas/${uuid}`, request).pipe(map((res) => res.data));
+  }
+
+  /** Recorrido por carretera entre los puntos, sin guardar nada. */
+  trazado(puntos: { latitud: number; longitud: number }[]): Observable<TrazadoPreview> {
+    return this.http
+      .post<ApiResponse<TrazadoPreview>>('/api/rutas/trazado', { puntos: puntos.map((p) => ({ latitud: p.latitud, longitud: p.longitud })) })
+      .pipe(map((res) => res.data));
   }
 
   remove(uuid: string): Observable<void> {

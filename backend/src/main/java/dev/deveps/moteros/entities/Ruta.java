@@ -73,6 +73,13 @@ public class Ruta {
     @Column(name = "fecha_creacion", updatable = false)
     private LocalDateTime fechaCreacion;
 
+    /**
+     * Recorrido por carretera entre los puntos, como polilinea codificada. Null si aun no se
+     * ha calculado; vacio si no hay recorrido por carretera. Ver {@code TrazadoService}.
+     */
+    @Column(columnDefinition = "MEDIUMTEXT")
+    private String trazado;
+
     @PrePersist
     void prePersist() {
         if (uuid == null) uuid = UUID.randomUUID().toString();

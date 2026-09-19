@@ -32,14 +32,14 @@
   <form class="mt-6 grid items-start gap-6 lg:grid-cols-5" [formGroup]="form" (ngSubmit)="save()" novalidate>
     <!-- Mapa -->
     <section class="lg:sticky lg:top-6 lg:col-span-3">
-      <app-ruta-map class="h-[460px]" [puntos]="puntos()" [editable]="true" (puntosChange)="puntos.set($event)" />
+      <app-ruta-map class="h-[460px]" [puntos]="puntos()" [trazado]="trazado()?.trazado" [editable]="true" (puntosChange)="puntos.set($event)" />
       <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
         <p class="text-sm text-ink-muted">
           @if (puntos().length === 0) {
             Haz clic en el mapa para marcar la salida y sigue marcando el recorrido.
           } @else {
             {{ puntos().length }} {{ puntos().length === 1 ? 'punto' : 'puntos' }} ·
-            <strong class="text-ink">{{ formatKm(distancia()) }}</strong>
+            <strong class="text-ink">{{ formatKm(distancia()) }}</strong>{{ trazado() ? ' por carretera' : '' }}
             {{ puntos().length <= 40 ? '· arrastra un punto para moverlo' : '' }}
           }
         </p>

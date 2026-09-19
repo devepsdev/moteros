@@ -20,6 +20,7 @@ import dev.deveps.moteros.exceptions.BadRequestException;
 import dev.deveps.moteros.exceptions.ResourceNotFoundException;
 import dev.deveps.moteros.mapper.EntityDtoMapper;
 import dev.deveps.moteros.repositories.PuntoRutaRepository;
+import dev.deveps.moteros.services.TrazadoService;
 import dev.deveps.moteros.repositories.RutaRepository;
 import dev.deveps.moteros.repositories.ValoracionRutaRepository;
 import dev.deveps.moteros.security.UsuarioAutenticadoProvider;
@@ -33,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +43,7 @@ public class RutaServiceImpl implements RutaService {
 
     private final RutaRepository rutaRepository;
     private final PuntoRutaRepository puntoRutaRepository;
+    private final TrazadoService trazadoService;
     private final ValoracionRutaRepository valoracionRutaRepository;
     private final UsuarioAutenticadoProvider usuarioAutenticado;
     private final NotificacionService notificacionService;
@@ -120,6 +123,7 @@ public class RutaServiceImpl implements RutaService {
         if (dto.getPuntos() != null && !dto.getPuntos().isEmpty()) {
             guardarPuntos(guardada, dto.getPuntos());
         }
+        aplicarTrazado(guardada);
         return obtenerPorUuid(guardada.getUuid());
     }
 
@@ -149,6 +153,7 @@ public class RutaServiceImpl implements RutaService {
         if (dto.getPuntos() != null) {
             reemplazarTrackInterno(ruta, dto.getPuntos());
         }
+        aplicarTrazado(ruta);
         return obtenerPorUuid(ruta.getUuid());
     }
 
@@ -175,7 +180,24 @@ public class RutaServiceImpl implements RutaService {
         Ruta ruta = buscar(rutaUuid);
         exigirCreador(ruta);
         reemplazarTrackInterno(ruta, puntos != null ? puntos : List.of());
+        aplicarTrazado(ruta);
         return obtenerTrack(rutaUuid);
+    }
+
+    // ===================== TRAZADO POR CARRETERA =====================
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<TrazadoService.Trazado> vistaPreviaTrazado(List<double[]> puntos) {
+        return trazadoService.calcular(puntos);
+    }
+
+    @Override
+    public boolean recalcularTrazado(Integer rutaId) {
+        Ruta ruta = rutaRepository.findById(rutaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ruta no encontrada: " + rutaId));
+        aplicarTrazado(ruta);
+        return ruta.getTrazado() != null;
     }
 
     // ===================== VALORACIONES =====================
@@ -245,6 +267,34 @@ public class RutaServiceImpl implements RutaService {
     private Double media(Integer rutaId) {
         Double media = valoracionRutaRepository.mediaPuntuacion(rutaId);
         return media == null ? null : Math.round(media * 100.0) / 100.0;
+    }
+
+    /**
+     * Calcula y guarda el recorrido por carretera de la ruta a partir de sus puntos. Si el
+     * servicio no responde, el trazado queda sin calcular (null) y lo reintenta
+     * {@code TrazadoRutasJob}. Con el recorrido calculado, la distancia pasa a ser la real por
+     * carretera y, si no se indico, se estima la duracion.
+     */
+    private void aplicarTrazado(Ruta ruta) {
+        List<double[]> puntos = puntoRutaRepository.findByRutaIdOrderByOrdenAsc(ruta.getId()).stream()
+                .map(p -> new double[]{p.getLatitud().doubleValue(), p.getLongitud().doubleValue()})
+                .toList();
+        String trazado = null;
+        if (puntos.size() >= TrazadoService.MIN_PUNTOS && puntos.size() <= TrazadoService.MAX_PUNTOS) {
+            Optional<TrazadoService.Trazado> calculado = trazadoService.calcular(puntos);
+            if (calculado.isPresent()) {
+                TrazadoService.Trazado t = calculado.get();
+                trazado = t.polilinea();
+                if (t.encontrado()) {
+                    ruta.setDistanciaKm(java.math.BigDecimal.valueOf(t.distanciaKm()));
+                    if (ruta.getDuracionEstimadaMin() == null && t.duracionMin() > 0) {
+                        ruta.setDuracionEstimadaMin(t.duracionMin());
+                    }
+                }
+            }
+        }
+        ruta.setTrazado(trazado);
+        rutaRepository.save(ruta);
     }
 
     private void reemplazarTrackInterno(Ruta ruta, List<PuntoRutaRequestDTO> puntos) {

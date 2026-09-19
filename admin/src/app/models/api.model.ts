@@ -86,6 +86,15 @@ export interface RutaResponse extends RutaSummary {
   longitudFin: number | null;
   fechaCreacion: string;
   puntos: PuntoRuta[] | null;
+  /** Recorrido por carretera (polilínea codificada); null si hay que unir los puntos. */
+  trazado?: string | null;
+}
+
+/** Recorrido por carretera calculado por la API para la vista previa. */
+export interface TrazadoPreview {
+  trazado: string | null;
+  distanciaKm: number | null;
+  duracionMin: number | null;
 }
 
 export interface RutaRequest {

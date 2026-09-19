@@ -42,4 +42,10 @@ public interface RutaService {
     ValoracionRutaResponseDTO valorar(String rutaUuid, ValoracionRutaRequestDTO dto);
 
     void eliminarMiValoracion(String rutaUuid);
+
+    /** Recorrido por carretera entre puntos sueltos, para ver el trazado mientras se dibuja una ruta. */
+    java.util.Optional<dev.deveps.moteros.services.TrazadoService.Trazado> vistaPreviaTrazado(List<double[]> puntos);
+
+    /** Recalcula el trazado por carretera de una ruta. Devuelve si ha quedado calculado. */
+    boolean recalcularTrazado(Integer rutaId);
 }

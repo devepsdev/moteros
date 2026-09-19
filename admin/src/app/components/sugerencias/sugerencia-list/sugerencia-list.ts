@@ -1,10 +1,12 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { trazadoPorCarretera } from '../../../core/trazado';
 import { ESTADO_SUGERENCIA_LABELS, etiquetaDificultad, etiquetaTerreno, formatDuracion, formatKm } from '../../../core/labels';
 import { EstadoSugerencia, PageResponse, SugerenciaRuta } from '../../../models/api.model';
 import { toApiProblem } from '../../../services/api-error';
 import { NotifyService } from '../../../services/notify';
+import { RutaService } from '../../../services/ruta';
 import { StatsService } from '../../../services/stats';
 import { SugerenciaService } from '../../../services/sugerencia';
 import { Pagination } from '../../shared/pagination/pagination';
@@ -49,6 +51,8 @@ export class SugerenciaList {
       .filter((p) => p.latitud != null && p.longitud != null)
       .map((p) => ({ latitud: p.latitud!, longitud: p.longitud!, nombre: p.nombre })),
   );
+  /** Cómo quedaría el recorrido por carretera uniendo esos lugares. */
+  protected readonly trazadoMapa = trazadoPorCarretera(this.puntosMapa, inject(RutaService));
 
   constructor() {
     this.load();

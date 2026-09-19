@@ -17,6 +17,15 @@ import java.util.Optional;
 @Repository
 public interface RutaRepository extends JpaRepository<Ruta, Integer> {
 
+    /** Rutas cuyo trazado por carretera falta por calcular (con un numero de puntos que lo admita). */
+    @Query("""
+            SELECT r.id FROM Ruta r
+            WHERE r.trazado IS NULL
+              AND (SELECT COUNT(p) FROM PuntoRuta p WHERE p.ruta = r) BETWEEN :min AND :max
+            ORDER BY r.id
+            """)
+    List<Integer> idsSinTrazado(@Param("min") long min, @Param("max") long max, Pageable pageable);
+
     Optional<Ruta> findByUuid(String uuid);
 
     /** Si ya hay una ruta con ese nombre y salida (ignora mayusculas). Evita que el scraper duplique. */

@@ -8,7 +8,7 @@ import { Text } from "@/components/ui/Text";
 import { describeError } from "@/lib/errors";
 import { DIFICULTADES, formatKm, longitudTrack, TERRENOS } from "@/lib/format";
 import { useTheme } from "@/theme";
-import type { Dificultad, PuntoRuta, TipoTerreno } from "@/types/dto";
+import type { Dificultad, PuntoRuta, TipoTerreno, TrazadoPreview } from "@/types/dto";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -54,7 +54,30 @@ export default function NuevaRutaScreen() {
     };
   }, []);
 
-  const distancia = longitudTrack(puntos);
+  // Recorrido por carretera de los puntos marcados, pedido al servidor un momento después del
+  // último toque. Mientras llega (o sin conexión), la línea une los puntos en recto.
+  const [preview, setPreview] = useState<{ clave: string; datos: TrazadoPreview } | null>(null);
+  const clavePuntos = puntos.map((p) => `${p.latitud},${p.longitud}`).join(";");
+  useEffect(() => {
+    if (puntos.length < 2) return;
+    let activo = true;
+    const id = setTimeout(() => {
+      rutasApi
+        .trazado(puntos)
+        .then((datos) => {
+          if (activo) setPreview({ clave: clavePuntos, datos });
+        })
+        .catch(() => {});
+    }, 700);
+    return () => {
+      activo = false;
+      clearTimeout(id);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clavePuntos]);
+  const trazado = preview && preview.clave === clavePuntos ? preview.datos : null;
+
+  const distancia = trazado?.distanciaKm ?? longitudTrack(puntos);
 
   const anadirPunto = ({ latitud, longitud }: { latitud: number; longitud: number }) =>
     setPuntos((prev) => [...prev, { orden: prev.length, latitud: redondear(latitud), longitud: redondear(longitud) }]);
@@ -99,7 +122,7 @@ export default function NuevaRutaScreen() {
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: theme.colors.background }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: insets.bottom + theme.spacing.huge }}>
         <View style={{ height: 420, backgroundColor: theme.colors.surfaceSunken }}>
-          <RutaMap puntos={puntos} onAddPunto={anadirPunto} centro={centro} mostrarUbicacion={ubicacionConcedida} />
+          <RutaMap puntos={puntos} onAddPunto={anadirPunto} centro={centro} mostrarUbicacion={ubicacionConcedida} trazado={trazado?.trazado} />
 
           <View
             pointerEvents="box-none"

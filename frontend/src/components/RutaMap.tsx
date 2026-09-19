@@ -1,7 +1,8 @@
 import type { PuntoRuta } from "@/types/dto";
+import { decodificarPolilinea } from "@/lib/polilinea";
 import { useTheme } from "@/theme";
-import { useEffect, useRef } from "react";
-import { Platform, type ViewStyle } from "react-native";
+import { useEffect, useMemo, useRef } from "react";
+import { Platform, View, type ViewStyle } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE, type MapPressEvent, type Region } from "react-native-maps";
 
 /** Centro por defecto (península ibérica) cuando no hay puntos que encuadrar. */
@@ -32,19 +33,26 @@ interface RutaMapProps {
   centro?: { latitud: number; longitud: number } | null;
   /** Título del marcador del primer punto (por defecto "Salida"). */
   etiquetaInicio?: string;
+  /**
+   * Recorrido por carretera (polilínea codificada). Si falta, la línea une los puntos en
+   * recto, que es lo que pasa con los tracks GPX (ya siguen la carretera) o sin conexión.
+   */
+  trazado?: string | null;
 }
 
-export function RutaMap({ puntos, onAddPunto, style, estatico, mostrarUbicacion, centro, etiquetaInicio = "Salida" }: RutaMapProps) {
+export function RutaMap({ puntos, onAddPunto, style, estatico, mostrarUbicacion, centro, etiquetaInicio = "Salida", trazado }: RutaMapProps) {
   const theme = useTheme();
   const mapRef = useRef<MapView>(null);
   const coords = puntos.map((p) => ({ latitude: p.latitud, longitude: p.longitud }));
+  const linea = useMemo(() => (trazado ? decodificarPolilinea(trazado) : null), [trazado]);
+  const recorrido = linea && linea.length > 1 ? linea : coords;
 
-  // Encuadra el recorrido cada vez que cambia el número de puntos (solo en modo lectura).
-  const numPuntos = coords.length;
+  // Encuadra el recorrido cada vez que cambia (solo en modo lectura).
+  const numPuntos = recorrido.length;
   useEffect(() => {
     if (onAddPunto || numPuntos < 2) return;
     const id = setTimeout(() => {
-      mapRef.current?.fitToCoordinates(coords, {
+      mapRef.current?.fitToCoordinates(recorrido, {
         edgePadding: { top: 48, right: 48, bottom: 48, left: 48 },
         animated: false,
       });
@@ -88,7 +96,15 @@ export function RutaMap({ puntos, onAddPunto, style, estatico, mostrarUbicacion,
       showsUserLocation={mostrarUbicacion}
       showsMyLocationButton={mostrarUbicacion}
     >
-      {coords.length > 1 ? <Polyline coordinates={coords} strokeColor={theme.colors.track} strokeWidth={5} /> : null}
+      {recorrido.length > 1 ? <Polyline coordinates={recorrido} strokeColor={theme.colors.track} strokeWidth={5} /> : null}
+      {/* Al trazar, los puntos intermedios que se van marcando. */}
+      {onAddPunto
+        ? coords.slice(1, -1).map((c, i) => (
+            <Marker key={i} coordinate={c} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={false}>
+              <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: theme.colors.track, borderWidth: 2, borderColor: "#FFFFFF" }} />
+            </Marker>
+          ))
+        : null}
       {coords.length > 0 ? <Marker coordinate={coords[0]} pinColor={etiquetaInicio === "Salida" ? "green" : theme.colors.accent} title={etiquetaInicio} /> : null}
       {coords.length > 1 ? <Marker coordinate={coords[coords.length - 1]} pinColor="red" title="Llegada" /> : null}
     </MapView>

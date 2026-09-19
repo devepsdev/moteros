@@ -80,6 +80,31 @@ class RutaRepositoryTest {
         assertThat(rutaRepository.countByCreadorUuid(creador.getUuid())).isEqualTo(2);
     }
 
+    @Test
+    void idsSinTrazado_soloRutasConPuntosSuficientesYSinCalcular() {
+        Ruta sinCalcular = persistirConPuntos("Sin calcular", null, 3);
+        persistirConPuntos("Ya calculada", "_p~iF~ps|U", 3);
+        persistirConPuntos("Sin carretera", "", 3);
+        persistirConPuntos("Un solo punto", null, 1);
+
+        assertThat(rutaRepository.idsSinTrazado(2, 100, PageRequest.of(0, 10)))
+                .containsExactly(sinCalcular.getId());
+    }
+
+    private Ruta persistirConPuntos(String nombre, String trazado, int numPuntos) {
+        Ruta ruta = em.persistAndFlush(Ruta.builder()
+                .creador(creador).nombre(nombre).puntoInicio("A").puntoFin("B")
+                .dificultad(Dificultad.facil).tipoTerreno(TipoTerreno.asfalto)
+                .trazado(trazado).build());
+        for (int i = 0; i < numPuntos; i++) {
+            em.persistAndFlush(dev.deveps.moteros.entities.PuntoRuta.builder()
+                    .ruta(ruta).orden(i)
+                    .latitud(new BigDecimal("41.0").add(BigDecimal.valueOf(i)))
+                    .longitud(new BigDecimal("2.0")).build());
+        }
+        return ruta;
+    }
+
     private void persistir(String nombre, Dificultad dif, TipoTerreno terreno, BigDecimal distanciaKm,
                            Integer duracion, BigDecimal lat, BigDecimal lng) {
         em.persistAndFlush(Ruta.builder()
