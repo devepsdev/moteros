@@ -1,4 +1,5 @@
 import * as rutasApi from "@/api/rutas";
+import { AlternativasTramo } from "@/components/AlternativasTramo";
 import { OptionPicker } from "@/components/OptionPicker";
 import { RutaMap } from "@/components/RutaMap";
 import { Button } from "@/components/ui/Button";
@@ -7,11 +8,12 @@ import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import { describeError } from "@/lib/errors";
 import { DIFICULTADES, formatKm, longitudTrack, TERRENOS } from "@/lib/format";
+import { elegirCarretera, quitarUltimo, ultimoMarcado } from "@/lib/tramos";
 import { useTheme } from "@/theme";
-import type { Dificultad, PuntoRuta, TipoTerreno, TrazadoPreview } from "@/types/dto";
+import type { AlternativaTramo, Dificultad, PuntoRuta, TipoTerreno, TrazadoPreview } from "@/types/dto";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -78,11 +80,51 @@ export default function NuevaRutaScreen() {
   const trazado = preview && preview.clave === clavePuntos ? preview.datos : null;
 
   const distancia = trazado?.distanciaKm ?? longitudTrack(puntos);
+  const marcados = puntos.filter((p) => !p.via).length;
 
-  const anadirPunto = ({ latitud, longitud }: { latitud: number; longitud: number }) =>
-    setPuntos((prev) => [...prev, { orden: prev.length, latitud: redondear(latitud), longitud: redondear(longitud) }]);
+  // Carreteras posibles para el último tramo marcado (si hay más de una).
+  const [tramo, setTramo] = useState<{ desde: number; hasta: number; opciones: AlternativaTramo[]; elegida: number } | null>(null);
+  const [buscandoCarreteras, setBuscandoCarreteras] = useState(false);
+  const peticionTramo = useRef(0);
 
-  const deshacer = () => setPuntos((prev) => prev.slice(0, -1));
+  const anadirPunto = ({ latitud, longitud }: { latitud: number; longitud: number }) => {
+    const nuevo: PuntoRuta = { orden: puntos.length, latitud: redondear(latitud), longitud: redondear(longitud) };
+    const desde = ultimoMarcado(puntos);
+    const hasta = puntos.length;
+    setPuntos([...puntos, nuevo]);
+    setTramo(null);
+    const id = ++peticionTramo.current;
+    if (desde < 0) return;
+    setBuscandoCarreteras(true);
+    rutasApi
+      .alternativas(puntos[desde], nuevo)
+      .then((opciones) => {
+        // Si entretanto se ha marcado otro punto o deshecho, esta respuesta ya no vale.
+        if (id === peticionTramo.current && opciones.length > 1) setTramo({ desde, hasta, opciones, elegida: 0 });
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (id === peticionTramo.current) setBuscandoCarreteras(false);
+      });
+  };
+
+  const elegir = (indice: number) => {
+    if (!tramo) return;
+    const res = elegirCarretera(puntos, tramo.desde, tramo.hasta, tramo.opciones[indice].puntosDePaso);
+    setPuntos(res.puntos);
+    setTramo({ ...tramo, hasta: res.hasta, elegida: indice });
+  };
+
+  const olvidarTramo = () => {
+    peticionTramo.current++;
+    setTramo(null);
+    setBuscandoCarreteras(false);
+  };
+
+  const deshacer = () => {
+    olvidarTramo();
+    setPuntos(quitarUltimo(puntos));
+  };
 
   const duracionMin = duracion.trim() ? Number.parseInt(duracion, 10) : undefined;
   const canSubmit = puntos.length >= 2 && nombre.trim() && puntoInicio.trim() && puntoFin.trim() && (duracionMin === undefined || duracionMin > 0);
@@ -122,7 +164,15 @@ export default function NuevaRutaScreen() {
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: theme.colors.background }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: insets.bottom + theme.spacing.huge }}>
         <View style={{ height: 420, backgroundColor: theme.colors.surfaceSunken }}>
-          <RutaMap puntos={puntos} onAddPunto={anadirPunto} centro={centro} mostrarUbicacion={ubicacionConcedida} trazado={trazado?.trazado} />
+          <RutaMap
+            puntos={puntos}
+            onAddPunto={anadirPunto}
+            centro={centro}
+            mostrarUbicacion={ubicacionConcedida}
+            trazado={trazado?.trazado}
+            alternativas={tramo?.opciones.map((o, i) => ({ trazado: o.trazado, elegida: i === tramo.elegida }))}
+            onElegirAlternativa={elegir}
+          />
 
           <View
             pointerEvents="box-none"
@@ -131,7 +181,11 @@ export default function NuevaRutaScreen() {
             <IconButton name="x" variant="floating" accessibilityLabel="Cancelar" onPress={() => (router.canGoBack() ? router.back() : router.replace("/rutas"))} />
             <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
               <IconButton name="corner-up-left" variant="floating" accessibilityLabel="Deshacer último punto" disabled={puntos.length === 0} onPress={deshacer} />
-              <IconButton name="trash" variant="floating" accessibilityLabel="Borrar recorrido" disabled={puntos.length === 0} onPress={() => setPuntos([])} />
+              <IconButton name="trash" variant="floating" accessibilityLabel="Borrar recorrido" disabled={puntos.length === 0} onPress={() => {
+                  olvidarTramo();
+                  setPuntos([]);
+                }}
+              />
             </View>
           </View>
 
@@ -152,7 +206,7 @@ export default function NuevaRutaScreen() {
             }}
           >
             <Text variant="caption" style={{ color: "#FFFFFF" }}>
-              {puntos.length === 0 ? "Toca el mapa para marcar la salida" : puntos.length === 1 ? "Sigue tocando para trazar el recorrido" : `${puntos.length} puntos`}
+              {marcados === 0 ? "Toca el mapa para marcar la salida" : marcados === 1 ? "Sigue tocando para trazar el recorrido" : `${marcados} puntos`}
             </Text>
             <Text variant="title3" style={{ color: "#FFFFFF" }}>
               {formatKm(distancia)}
@@ -161,6 +215,22 @@ export default function NuevaRutaScreen() {
         </View>
 
         <View style={{ paddingHorizontal: theme.screenPadding, paddingTop: theme.spacing.xl, gap: theme.spacing.lg }}>
+          {tramo ? (
+            <View style={{ gap: theme.spacing.sm }}>
+              <Text variant="overline" color="inkFaint">
+                Carretera para el último tramo
+              </Text>
+              <AlternativasTramo opciones={tramo.opciones} elegida={tramo.elegida} onElegir={elegir} />
+              <Text variant="caption" color="inkFaint">
+                También puedes tocar una línea gris en el mapa. Para pasar por una carretera concreta, marca un punto encima.
+              </Text>
+            </View>
+          ) : buscandoCarreteras ? (
+            <Text variant="caption" color="inkFaint">
+              Buscando otras carreteras para este tramo…
+            </Text>
+          ) : null}
+
           <View style={{ gap: theme.spacing.xs }}>
             <Text variant="overline" color="accent">
               Nueva ruta

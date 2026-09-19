@@ -2,10 +2,11 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin, of, switchMap } from 'rxjs';
-import { DIFICULTADES, TERRENOS, formatKm, longitudTrack } from '../../../core/labels';
+import { DIFICULTADES, TERRENOS, formatDuracion, formatKm, longitudTrack } from '../../../core/labels';
+import { elegirCarretera, indicesMarcados, quitarUltimo } from '../../../core/tramos';
 import { trazadoPorCarretera } from '../../../core/trazado';
 import { PuntoTrack, leerTrack, simplificar } from '../../../core/track';
-import { Dificultad, RutaRequest, RutaResponse, SugerenciaRuta, TipoTerreno } from '../../../models/api.model';
+import { AlternativaTramo, Dificultad, RutaRequest, RutaResponse, SugerenciaRuta, TipoTerreno } from '../../../models/api.model';
 import { toApiProblem } from '../../../services/api-error';
 import { ConfirmService } from '../../../services/confirm';
 import { NotifyService } from '../../../services/notify';
@@ -41,6 +42,7 @@ export class RutaForm {
   protected readonly dificultades = DIFICULTADES;
   protected readonly terrenos = TERRENOS;
   protected readonly formatKm = formatKm;
+  protected readonly formatDuracion = formatDuracion;
 
   protected readonly form = this.fb.group({
     nombre: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(120)]),
@@ -65,6 +67,32 @@ export class RutaForm {
   /** Lugares de la sugerencia que no se pudieron geolocalizar: el admin los marca a mano. */
   protected readonly sinCoordenadas = signal<string[]>([]);
   private nombreRuta = '';
+
+  /** Carreteras posibles para un tramo (entre dos puntos marcados seguidos) y la elegida. */
+  protected readonly tramo = signal<{ desde: number; hasta: number; opciones: AlternativaTramo[]; elegida: number } | null>(null);
+  /** Índice del punto de salida del tramo cuyas carreteras se están buscando. */
+  protected readonly buscandoTramo = signal<number | null>(null);
+  private peticionTramo = 0;
+
+  protected readonly numMarcados = computed(() => indicesMarcados(this.puntos()).length);
+
+  protected readonly alternativasMapa = computed(() => {
+    const t = this.tramo();
+    return t ? t.opciones.map((o, i) => ({ trazado: o.trazado, elegida: i === t.elegida })) : [];
+  });
+
+  /** Tramos entre puntos marcados seguidos, para elegir su carretera (no en tracks importados). */
+  protected readonly tramos = computed(() => {
+    const puntos = this.puntos();
+    const marcados = indicesMarcados(puntos);
+    if (marcados.length < 2 || puntos.length > 100) return [];
+    return marcados.slice(1).map((hasta, n) => ({
+      numero: n + 1,
+      desde: marcados[n],
+      hasta,
+      nombre: `${puntos[marcados[n]].nombre ?? `Punto ${n + 1}`} → ${puntos[hasta].nombre ?? `Punto ${n + 2}`}`,
+    }));
+  });
 
   ngOnInit(): void {
     const uuid = this.uuid();
@@ -96,11 +124,69 @@ export class RutaForm {
   }
 
   protected deshacer(): void {
-    this.puntos.update((lista) => lista.slice(0, -1));
+    this.cerrarTramo();
+    this.puntos.update((lista) => quitarUltimo(lista));
   }
 
   protected borrarRecorrido(): void {
+    this.cerrarTramo();
     this.puntos.set([]);
+  }
+
+  /** Cambios desde el mapa: un clic añade un punto al final (y se buscan sus carreteras); arrastrar mueve uno. */
+  protected cambiarPuntos(nuevos: PuntoMapa[]): void {
+    const anteriores = this.puntos();
+    this.puntos.set(nuevos);
+    this.cerrarTramo();
+    if (nuevos.length === anteriores.length + 1 && !nuevos[nuevos.length - 1].via) {
+      const marcados = indicesMarcados(nuevos);
+      if (marcados.length >= 2) this.buscarCarreteras(marcados[marcados.length - 2], marcados[marcados.length - 1], true);
+    }
+  }
+
+  /** Pide las carreteras posibles entre dos puntos marcados seguidos. */
+  protected buscarCarreteras(desde: number, hasta: number, automatico = false): void {
+    const id = ++this.peticionTramo;
+    const puntos = this.puntos();
+    this.tramo.set(null);
+    this.buscandoTramo.set(desde);
+    this.rutas.alternativas(puntos[desde], puntos[hasta]).subscribe({
+      next: (opciones) => {
+        if (id !== this.peticionTramo) return;
+        this.buscandoTramo.set(null);
+        if (opciones.length > 1) {
+          // Si ya se había elegido una carretera en este tramo, se marca la que corresponde.
+          const elegida = puntos.slice(desde + 1, hasta).some((p) => p.via) ? -1 : 0;
+          this.tramo.set({ desde, hasta, opciones, elegida });
+        } else if (!automatico) {
+          this.notify.success('En este tramo no hay otra carretera que merezca la pena.');
+        }
+      },
+      error: (cause: unknown) => {
+        if (id !== this.peticionTramo) return;
+        this.buscandoTramo.set(null);
+        if (!automatico) this.notify.error(toApiProblem(cause).message);
+      },
+    });
+  }
+
+  protected nombreTramo(desde: number): string {
+    const tr = this.tramos().find((x) => x.desde === desde);
+    return tr ? `${tr.numero}: ${tr.nombre}` : '';
+  }
+
+  protected elegir(indice: number): void {
+    const t = this.tramo();
+    if (!t) return;
+    const nuevos = elegirCarretera(this.puntos(), t.desde, t.hasta, t.opciones[indice].puntosDePaso);
+    this.puntos.set(nuevos);
+    this.tramo.set({ ...t, hasta: t.desde + t.opciones[indice].puntosDePaso.length + 1, elegida: indice });
+  }
+
+  protected cerrarTramo(): void {
+    this.peticionTramo++;
+    this.tramo.set(null);
+    this.buscandoTramo.set(null);
   }
 
   /**
@@ -125,6 +211,7 @@ export class RutaForm {
         })),
       );
       this.sinCoordenadas.set([]);
+      this.cerrarTramo();
       this.notify.success(
         `Recorrido importado: ${simplificados.length} puntos (de ${todos.length}) · ${formatKm(longitudTrack(simplificados))}.`,
       );
@@ -204,7 +291,7 @@ export class RutaForm {
     });
     const puntos = [...(ruta.puntos ?? [])].sort((a, b) => a.orden - b.orden);
     if (puntos.length > 0) {
-      this.puntos.set(puntos.map((p) => ({ latitud: p.latitud, longitud: p.longitud, nombre: p.nombrePunto })));
+      this.puntos.set(puntos.map((p) => ({ latitud: p.latitud, longitud: p.longitud, nombre: p.nombrePunto, via: p.via ?? false })));
     } else if (ruta.latitudInicio != null && ruta.longitudInicio != null && ruta.latitudFin != null && ruta.longitudFin != null) {
       this.puntos.set([
         { latitud: ruta.latitudInicio, longitud: ruta.longitudInicio, nombre: ruta.puntoInicio },
@@ -248,7 +335,7 @@ export class RutaForm {
       duracionEstimadaMin: v.duracionEstimadaMin || null,
       dificultad: v.dificultad,
       tipoTerreno: v.tipoTerreno,
-      puntos: puntos.map((p, orden) => ({ orden, latitud: p.latitud, longitud: p.longitud, nombrePunto: p.nombre?.slice(0, 100) ?? null })),
+      puntos: puntos.map((p, orden) => ({ orden, latitud: p.latitud, longitud: p.longitud, nombrePunto: p.nombre?.slice(0, 100) ?? null, via: p.via ?? false })),
     };
   }
 }

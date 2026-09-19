@@ -38,14 +38,23 @@ interface RutaMapProps {
    * recto, que es lo que pasa con los tracks GPX (ya siguen la carretera) o sin conexión.
    */
   trazado?: string | null;
+  /** Carreteras posibles para un tramo: la elegida resaltada y el resto en gris, tocables. */
+  alternativas?: { trazado: string; elegida: boolean }[];
+  onElegirAlternativa?: (indice: number) => void;
 }
 
-export function RutaMap({ puntos, onAddPunto, style, estatico, mostrarUbicacion, centro, etiquetaInicio = "Salida", trazado }: RutaMapProps) {
+export function RutaMap({ puntos, onAddPunto, style, estatico, mostrarUbicacion, centro, etiquetaInicio = "Salida", trazado, alternativas, onElegirAlternativa }: RutaMapProps) {
   const theme = useTheme();
   const mapRef = useRef<MapView>(null);
   const coords = puntos.map((p) => ({ latitude: p.latitud, longitude: p.longitud }));
   const linea = useMemo(() => (trazado ? decodificarPolilinea(trazado) : null), [trazado]);
   const recorrido = linea && linea.length > 1 ? linea : coords;
+  const lineasAlternativas = useMemo(
+    () => (alternativas ?? []).map((a) => ({ coords: decodificarPolilinea(a.trazado), elegida: a.elegida })),
+    [alternativas]
+  );
+  // Los puntos de paso (via) fijan la carretera elegida pero no son puntos del usuario.
+  const marcados = puntos.filter((p) => !p.via).map((p) => ({ latitude: p.latitud, longitude: p.longitud }));
 
   // Encuadra el recorrido cada vez que cambia (solo en modo lectura).
   const numPuntos = recorrido.length;
@@ -96,17 +105,23 @@ export function RutaMap({ puntos, onAddPunto, style, estatico, mostrarUbicacion,
       showsUserLocation={mostrarUbicacion}
       showsMyLocationButton={mostrarUbicacion}
     >
+      {lineasAlternativas.map((a, i) =>
+        a.elegida ? null : (
+          <Polyline key={`alt-${i}`} coordinates={a.coords} strokeColor="rgba(160, 160, 160, 0.85)" strokeWidth={5} tappable onPress={() => onElegirAlternativa?.(i)} />
+        )
+      )}
       {recorrido.length > 1 ? <Polyline coordinates={recorrido} strokeColor={theme.colors.track} strokeWidth={5} /> : null}
+      {lineasAlternativas.map((a, i) => (a.elegida ? <Polyline key={`alt-${i}`} coordinates={a.coords} strokeColor={theme.colors.track} strokeWidth={6} /> : null))}
       {/* Al trazar, los puntos intermedios que se van marcando. */}
       {onAddPunto
-        ? coords.slice(1, -1).map((c, i) => (
+        ? marcados.slice(1, -1).map((c, i) => (
             <Marker key={i} coordinate={c} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={false}>
               <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: theme.colors.track, borderWidth: 2, borderColor: "#FFFFFF" }} />
             </Marker>
           ))
         : null}
-      {coords.length > 0 ? <Marker coordinate={coords[0]} pinColor={etiquetaInicio === "Salida" ? "green" : theme.colors.accent} title={etiquetaInicio} /> : null}
-      {coords.length > 1 ? <Marker coordinate={coords[coords.length - 1]} pinColor="red" title="Llegada" /> : null}
+      {marcados.length > 0 ? <Marker coordinate={marcados[0]} pinColor={etiquetaInicio === "Salida" ? "green" : theme.colors.accent} title={etiquetaInicio} /> : null}
+      {marcados.length > 1 ? <Marker coordinate={marcados[marcados.length - 1]} pinColor="red" title="Llegada" /> : null}
     </MapView>
   );
 }

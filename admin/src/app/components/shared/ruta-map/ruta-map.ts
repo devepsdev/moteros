@@ -6,6 +6,8 @@ export interface PuntoMapa {
   latitud: number;
   longitud: number;
   nombre?: string | null;
+  /** Punto de paso que fija la carretera elegida: no se dibuja ni se numera. */
+  via?: boolean;
 }
 
 const NARANJA = '#FF6A13';
@@ -37,6 +39,9 @@ export class RutaMap implements AfterViewInit, OnDestroy {
   readonly editable = input(false);
   /** Recorrido por carretera (polilínea codificada); sin él, la línea une los puntos en recto. */
   readonly trazado = input<string | null | undefined>(null);
+  /** Carreteras posibles para un tramo: la elegida resaltada y el resto en gris, clicables. */
+  readonly alternativas = input<{ trazado: string; elegida: boolean }[]>([]);
+  readonly elegirAlternativa = output<number>();
   readonly puntosChange = output<PuntoMapa[]>();
 
   private readonly contenedor = viewChild.required<ElementRef<HTMLDivElement>>('contenedor');
@@ -49,6 +54,7 @@ export class RutaMap implements AfterViewInit, OnDestroy {
     effect(() => {
       const puntos = this.puntos();
       this.trazado();
+      this.alternativas();
       if (this.mapa) this.pintar(puntos);
     });
   }
@@ -83,18 +89,32 @@ export class RutaMap implements AfterViewInit, OnDestroy {
 
     const trazado = this.trazado();
     const linea = trazado ? (decodificarPolilinea(trazado) as L.LatLngTuple[]) : coords;
+    const alternativas = this.alternativas();
+    alternativas.forEach((a, i) => {
+      if (a.elegida) return;
+      // Sin propagar el clic al mapa, que añadiría un punto.
+      L.polyline(decodificarPolilinea(a.trazado) as L.LatLngTuple[], { color: '#9A9A9A', weight: 6, opacity: 0.85, bubblingMouseEvents: false })
+        .on('click', () => this.elegirAlternativa.emit(i))
+        .bindTooltip('Ir por esta carretera', { sticky: true })
+        .addTo(this.capa);
+    });
     if (linea.length > 1) {
       L.polyline(linea, { color: NARANJA, weight: 5, opacity: 0.9 }).addTo(this.capa);
     }
+    alternativas.forEach((a) => {
+      if (a.elegida) L.polyline(decodificarPolilinea(a.trazado) as L.LatLngTuple[], { color: NARANJA, weight: 6, opacity: 1 }).addTo(this.capa);
+    });
     // Con un track importado (cientos de puntos) solo se marcan salida y llegada: los números
     // taparían el recorrido. Con pocos puntos se ven todos y se pueden arrastrar.
-    const detallado = puntos.length <= MAX_MARCADORES;
-    puntos.forEach((p, i) => {
-      const esExtremo = i === 0 || i === puntos.length - 1;
+    const marcados = puntos.flatMap((p, i) => (p.via ? [] : [i]));
+    const detallado = marcados.length <= MAX_MARCADORES;
+    marcados.forEach((i, n) => {
+      const p = puntos[i];
+      const esExtremo = n === 0 || n === marcados.length - 1;
       if (!detallado && !esExtremo) return;
-      const color = i === 0 ? '#5FBF8A' : i === puntos.length - 1 && puntos.length > 1 ? '#F0625A' : NARANJA;
+      const color = n === 0 ? '#5FBF8A' : n === marcados.length - 1 && marcados.length > 1 ? '#F0625A' : NARANJA;
       const marcador = L.marker([p.latitud, p.longitud], {
-        icon: icono(String(i + 1), color),
+        icon: icono(String(n + 1), color),
         draggable: this.editable() && detallado,
         zIndexOffset: esExtremo ? 1000 : 0,
       });
@@ -109,8 +129,9 @@ export class RutaMap implements AfterViewInit, OnDestroy {
     });
 
     // En edición no se mueve la vista con cada clic o «Deshacer», solo cuando se carga un recorrido.
-    const esCarga = Math.abs(coords.length - this.ultimoTotal) > 1;
-    this.ultimoTotal = coords.length;
+    // Se cuentan solo los puntos marcados: elegir una carretera añade puntos de paso, no es una carga.
+    const esCarga = Math.abs(marcados.length - this.ultimoTotal) > 1;
+    this.ultimoTotal = marcados.length;
     if (coords.length > 0 && (!this.editable() || esCarga)) {
       if (coords.length === 1) this.mapa.setView(coords[0], 12);
       else this.mapa.fitBounds(L.latLngBounds(linea.length > 1 ? linea : coords), { padding: [32, 32] });

@@ -1,4 +1,5 @@
 import type {
+  AlternativaTramo,
   Dificultad,
   PageResponse,
   RutaRequest,
@@ -72,5 +73,13 @@ export function trazado(puntos: { latitud: number; longitud: number }[]): Promis
   return request<TrazadoPreview>("/api/rutas/trazado", {
     method: "POST",
     body: { puntos: puntos.map((p) => ({ latitud: p.latitud, longitud: p.longitud })) },
+  });
+}
+
+/** Hasta tres carreteras entre dos puntos seguidos (lista vacía si solo hay una). */
+export function alternativas(origen: { latitud: number; longitud: number }, destino: { latitud: number; longitud: number }): Promise<AlternativaTramo[]> {
+  return request<AlternativaTramo[]>("/api/rutas/trazado/alternativas", {
+    method: "POST",
+    body: { origen: { latitud: origen.latitud, longitud: origen.longitud }, destino: { latitud: destino.latitud, longitud: destino.longitud } },
   });
 }

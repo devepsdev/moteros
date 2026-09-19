@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
-import { ApiResponse, PageResponse, RutaRequest, RutaResponse, RutaSummary, TrazadoPreview } from '../models/api.model';
+import { AlternativaTramo, ApiResponse, PageResponse, RutaRequest, RutaResponse, RutaSummary, TrazadoPreview } from '../models/api.model';
 
 @Injectable({ providedIn: 'root' })
 export class RutaService {
@@ -29,6 +29,16 @@ export class RutaService {
   trazado(puntos: { latitud: number; longitud: number }[]): Observable<TrazadoPreview> {
     return this.http
       .post<ApiResponse<TrazadoPreview>>('/api/rutas/trazado', { puntos: puntos.map((p) => ({ latitud: p.latitud, longitud: p.longitud })) })
+      .pipe(map((res) => res.data));
+  }
+
+  /** Hasta tres carreteras entre dos puntos seguidos (vacía si solo hay una). */
+  alternativas(origen: { latitud: number; longitud: number }, destino: { latitud: number; longitud: number }): Observable<AlternativaTramo[]> {
+    return this.http
+      .post<ApiResponse<AlternativaTramo[]>>('/api/rutas/trazado/alternativas', {
+        origen: { latitud: origen.latitud, longitud: origen.longitud },
+        destino: { latitud: destino.latitud, longitud: destino.longitud },
+      })
       .pipe(map((res) => res.data));
   }
 

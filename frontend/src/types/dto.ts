@@ -131,6 +131,8 @@ export interface PuntoRuta {
   longitud: number;
   altitudM?: number | null;
   nombrePunto?: string | null;
+  /** Punto de paso que fija la carretera elegida entre dos puntos (no lo marca el usuario). */
+  via?: boolean;
 }
 
 export interface RutaSummary {
@@ -375,4 +377,16 @@ export interface TrazadoPreview {
   trazado: string | null;
   distanciaKm: number | null;
   duracionMin: number | null;
+}
+
+/** Una de las carreteras posibles entre dos puntos seguidos de una ruta. */
+export interface AlternativaTramo {
+  trazado: string;
+  distanciaKm: number;
+  duracionMin: number;
+  curvasPorKm: number;
+  masCurvas: boolean;
+  masRapida: boolean;
+  /** Puntos que hay que añadir (como `via`) entre los dos del tramo para ir por esta carretera. */
+  puntosDePaso: { latitud: number; longitud: number }[];
 }

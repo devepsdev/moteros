@@ -32,15 +32,23 @@
   <form class="mt-6 grid items-start gap-6 lg:grid-cols-5" [formGroup]="form" (ngSubmit)="save()" novalidate>
     <!-- Mapa -->
     <section class="lg:sticky lg:top-6 lg:col-span-3">
-      <app-ruta-map class="h-[460px]" [puntos]="puntos()" [trazado]="trazado()?.trazado" [editable]="true" (puntosChange)="puntos.set($event)" />
+      <app-ruta-map
+        class="h-[460px]"
+        [puntos]="puntos()"
+        [trazado]="trazado()?.trazado"
+        [alternativas]="alternativasMapa()"
+        [editable]="true"
+        (puntosChange)="cambiarPuntos($event)"
+        (elegirAlternativa)="elegir($event)"
+      />
       <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
         <p class="text-sm text-ink-muted">
           @if (puntos().length === 0) {
             Haz clic en el mapa para marcar la salida y sigue marcando el recorrido.
           } @else {
-            {{ puntos().length }} {{ puntos().length === 1 ? 'punto' : 'puntos' }} ·
+            {{ numMarcados() }} {{ numMarcados() === 1 ? 'punto' : 'puntos' }} ·
             <strong class="text-ink">{{ formatKm(distancia()) }}</strong>{{ trazado() ? ' por carretera' : '' }}
-            {{ puntos().length <= 40 ? '· arrastra un punto para moverlo' : '' }}
+            {{ numMarcados() <= 40 ? '· arrastra un punto para moverlo' : '' }}
           }
         </p>
         <div class="flex flex-wrap gap-2">
@@ -50,6 +58,51 @@
           <button type="button" class="btn btn-danger btn-sm" [disabled]="puntos().length === 0" (click)="borrarRecorrido()">Borrar recorrido</button>
         </div>
       </div>
+
+      <!-- Carretera de cada tramo -->
+      @if (tramo(); as t) {
+        <div class="card mt-4 p-4">
+          <div class="flex items-center justify-between gap-3">
+            <p class="text-sm font-semibold">Carretera del tramo {{ nombreTramo(t.desde) }}</p>
+            <button type="button" class="btn btn-ghost btn-sm" (click)="cerrarTramo()">Cerrar</button>
+          </div>
+          <div class="mt-3 grid gap-2 sm:grid-cols-3">
+            @for (o of t.opciones; track $index) {
+              <button
+                type="button"
+                class="cursor-pointer rounded-xl border p-3 text-left transition-colors"
+                [class]="$index === t.elegida ? 'border-accent bg-accent-soft' : 'border-line hover:border-line-strong'"
+                (click)="elegir($index)"
+              >
+                <p class="eyebrow" [class.text-accent]="$index === t.elegida" [class.text-ink-faint]="$index !== t.elegida">Opción {{ $index + 1 }}</p>
+                <p class="mt-1 font-semibold">{{ formatKm(o.distanciaKm) }} · {{ formatDuracion(o.duracionMin) }}</p>
+                @if (o.masCurvas) { <p class="mt-1 text-xs font-semibold text-accent">Más curvas</p> }
+                @if (o.masRapida) { <p class="mt-1 text-xs text-ink-muted">Más rápida</p> }
+              </button>
+            }
+          </div>
+          <p class="mt-3 text-xs text-ink-faint">
+            @if (t.elegida < 0) { Ya habías elegido una carretera en este tramo: elige una opción para cambiarla. }
+            También puedes hacer clic en una línea gris del mapa. Para pasar por una carretera concreta, marca un punto encima.
+          </p>
+        </div>
+      }
+
+      @if (tramos().length > 0) {
+        <details class="card mt-4 p-4">
+          <summary class="cursor-pointer text-sm font-semibold">Elegir carretera por tramos ({{ tramos().length }})</summary>
+          <ul class="mt-3 divide-y divide-line">
+            @for (tr of tramos(); track tr.desde) {
+              <li class="flex items-center justify-between gap-3 py-2 text-sm">
+                <span class="truncate"><span class="text-ink-faint">{{ tr.numero }}.</span> {{ tr.nombre }}</span>
+                <button type="button" class="btn btn-secondary btn-sm shrink-0" [disabled]="buscandoTramo() !== null" (click)="buscarCarreteras(tr.desde, tr.hasta)">
+                  {{ buscandoTramo() === tr.desde ? 'Buscando…' : 'Ver carreteras' }}
+                </button>
+              </li>
+            }
+          </ul>
+        </details>
+      }
     </section>
 
     <!-- Datos -->
