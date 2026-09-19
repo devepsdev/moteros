@@ -33,6 +33,20 @@ class TrazadoServiceImplTest {
     }
 
     @Test
+    void leerTramos_leeTodasLasAlternativas() {
+        String geojson = """
+                {"features":[
+                  {"properties":{"summary":{"distance":1000,"duration":60}},
+                   "geometry":{"coordinates":[[2.1,41.3],[2.2,41.4]]}},
+                  {"properties":{"summary":{"distance":1500,"duration":120}},
+                   "geometry":{"coordinates":[[2.1,41.3],[2.3,41.35],[2.2,41.4]]}}]}
+                """;
+
+        assertThat(TrazadoServiceImpl.leerTramos(geojson)).extracting(TrazadoServiceImpl.Tramo::metros)
+                .containsExactly(1000.0, 1500.0);
+    }
+
+    @Test
     void leerTramo_sinGeometria_devuelveNull() {
         assertThat(TrazadoServiceImpl.leerTramo("{\"features\":[]}")).isNull();
     }

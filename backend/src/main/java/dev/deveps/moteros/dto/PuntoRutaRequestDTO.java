@@ -40,4 +40,7 @@ public class PuntoRutaRequestDTO {
 
     @Size(max = 100, message = "El nombre del punto no puede superar los 100 caracteres")
     private String nombrePunto;
+
+    /** Punto de paso que fija la carretera alternativa elegida entre dos puntos. */
+    private boolean via;
 }

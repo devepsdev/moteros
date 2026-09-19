@@ -43,6 +43,10 @@ public class PuntoRuta {
     @Column(name = "nombre_punto", length = 100)
     private String nombrePunto;
 
+    /** Punto de paso sobre la carretera alternativa elegida entre dos puntos (no lo marca el usuario). */
+    @Column(nullable = false)
+    private boolean via;
+
     @PrePersist
     void prePersist() {
         if (uuid == null) uuid = UUID.randomUUID().toString();

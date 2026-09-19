@@ -86,6 +86,7 @@ public class EntityDtoMapper {
                 .longitud(p.getLongitud())
                 .altitudM(p.getAltitudM())
                 .nombrePunto(p.getNombrePunto())
+                .via(p.isVia())
                 .build();
     }
 

@@ -314,6 +314,7 @@ public class RutaServiceImpl implements RutaService {
                         .longitud(p.getLongitud())
                         .altitudM(p.getAltitudM())
                         .nombrePunto(p.getNombrePunto())
+                        .via(p.isVia())
                         .build())
                 .toList();
         puntoRutaRepository.saveAll(entidades);

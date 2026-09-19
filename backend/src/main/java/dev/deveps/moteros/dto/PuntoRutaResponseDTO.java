@@ -25,4 +25,6 @@ public class PuntoRutaResponseDTO {
     private Integer altitudM;
 
     private String nombrePunto;
+
+    private boolean via;
 }
