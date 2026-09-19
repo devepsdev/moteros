@@ -22,8 +22,9 @@ como hecho; lo demás se rellena en Play Console.
 - **Correo de contacto**: `deveps@deveps.dev`
 - **Categoría sugerida**: Estilo de vida (o Redes sociales).
 
-Hacen falta además capturas de pantalla (mínimo 2), icono de 512×512 y gráfico destacado de
-1024×500. El icono está en `assets/images/icon.png`.
+Textos (nombre, descripción breve y completa), icono de 512×512 y gráfico destacado de 1024×500:
+[`store/ficha.md`](store/ficha.md). Faltan las capturas de pantalla (mínimo 2), que se hacen con el
+APK de prueba: `eas build -p android --profile preview`.
 
 ## 3. Seguridad de los datos
 
