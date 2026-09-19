@@ -76,7 +76,7 @@ escritura en almacenamiento o ubicación en segundo plano.
 ## 7. Compilar y subir
 
 ```bash
-eas env:create --name GOOGLE_MAPS_API_KEY --value <clave> --environment production
+eas env:set --name GOOGLE_MAPS_API_KEY --value <clave> --environment production --visibility sensitive
 eas build -p android --profile production
 eas submit -p android --latest
 ```

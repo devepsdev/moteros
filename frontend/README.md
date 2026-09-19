@@ -62,7 +62,7 @@ Google Play.
 npm install -g eas-cli
 eas login
 eas init                      # vincula el proyecto con la cuenta de Expo (una sola vez)
-eas env:create --name GOOGLE_MAPS_API_KEY --value <clave> --environment production
+eas env:set --name GOOGLE_MAPS_API_KEY --value <clave> --environment production --visibility sensitive
 eas build -p android --profile preview      # APK
 eas build -p android --profile production   # AAB para Play Store
 ```
