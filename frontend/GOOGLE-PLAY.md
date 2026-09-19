@@ -88,7 +88,13 @@ con el paquete `dev.deveps.moteros` y dos huellas SHA‑1: la del certificado de
 (Play Console → Configuración → Integridad de la app). Sin la segunda, el mapa sale en gris en la
 versión descargada de Play.
 
-## 8. Antes de publicar
+## 8. Actualizaciones posteriores
+
+Los cambios de JavaScript llegan a los usuarios con EAS Update, sin pasar por la revisión de
+Google: `eas workflow:run .eas/workflows/produccion.yml` (ver [README](README.md)). Solo hay que
+subir un AAB nuevo a Play Console cuando cambia la parte nativa.
+
+## 9. Antes de publicar
 
 - [ ] Probar en un móvil el registro con la casilla de términos, las denuncias y los bloqueos.
 - [x] Revisar las sugerencias de ruta pendientes en el panel (31 rutas publicadas el 19-09-2026).

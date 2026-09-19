@@ -1,0 +1,39 @@
+# Cada push a main actualiza el APK de pruebas.
+#
+# Primero se calcula la huella de la parte nativa del proyecto (fingerprint). Si ya existe un
+# APK de pruebas con esa misma huella, basta con publicar el JavaScript nuevo: llega al móvil
+# en un par de minutos, sin reinstalar nada. Si la parte nativa ha cambiado (una librería
+# nueva, permisos, iconos, subir de SDK), se compila un APK nuevo.
+name: Pruebas (canal preview)
+
+on:
+  push:
+    branches: ['main']
+
+jobs:
+  fingerprint:
+    name: Huella nativa
+    type: fingerprint
+  buscar_apk:
+    name: Buscar un APK con esa huella
+    needs: [fingerprint]
+    type: get-build
+    params:
+      fingerprint_hash: ${{ needs.fingerprint.outputs.android_fingerprint_hash }}
+      profile: preview
+  compilar_apk:
+    name: Compilar APK de pruebas
+    needs: [buscar_apk]
+    if: ${{ !needs.buscar_apk.outputs.build_id }}
+    type: build
+    params:
+      platform: android
+      profile: preview
+  publicar_actualizacion:
+    name: Publicar actualización
+    needs: [buscar_apk]
+    if: ${{ needs.buscar_apk.outputs.build_id }}
+    type: update
+    params:
+      branch: preview
+      platform: android

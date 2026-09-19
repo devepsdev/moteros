@@ -69,3 +69,35 @@ eas build -p android --profile production   # AAB para Play Store
 
 Para la ficha de Google Play (páginas legales, seguridad de los datos, permisos, cuenta de prueba
 para la revisión): [GOOGLE-PLAY.md](GOOGLE-PLAY.md).
+
+## Actualizaciones por el aire (EAS Update)
+
+Los cambios de JavaScript (pantallas, estilos, lógica) no necesitan compilar: se publican con
+**EAS Update** y la app instalada se los descarga al abrirse. Solo hacen falta builds nuevos
+cuando cambia la parte nativa: una librería con código nativo, permisos, iconos, plugins de
+`app.json` o la versión del SDK.
+
+Cada build queda suscrito a un canal (`eas.json`): `preview` para el APK de pruebas y
+`production` para lo que está en Google Play.
+
+Los workflows de `.eas/workflows/` lo automatizan calculando la huella de la parte nativa
+(*fingerprint*):
+
+| Workflow | Cuándo | Qué hace |
+|---|---|---|
+| `pruebas.yml` | En cada push a `main` | Publica la actualización en el canal `preview`; si la parte nativa ha cambiado, compila un APK |
+| `produccion.yml` | A mano | Lo mismo en el canal `production`; si compila un AAB, hay que subirlo a Play Console |
+
+Requisito, una sola vez: vincular el repositorio en expo.dev (*Project settings → GitHub*) e
+indicar `frontend` como directorio base del proyecto. El workflow de producción se lanza desde
+el panel de EAS o con:
+
+```bash
+eas workflow:run .eas/workflows/produccion.yml
+```
+
+Para publicar una actualización a mano, sin workflow:
+
+```bash
+eas update --branch preview --message "qué cambia"
+```

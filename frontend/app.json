@@ -3,6 +3,12 @@
     "name": "moter@s",
     "slug": "moteros",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/1c3299df-6f68-4db4-8656-698a2b663aa5"
+    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "moteros",

@@ -1,0 +1,40 @@
+# Publica en el canal de producción (la versión que está en Google Play).
+#
+# No se lanza solo: se ejecuta a mano desde el panel de EAS o con
+#   eas workflow:run .eas/workflows/produccion.yml
+# así se decide cuándo llega cada cambio a quien tiene la app instalada.
+#
+# Si la parte nativa no ha cambiado desde el último AAB, publica solo el JavaScript. Si ha
+# cambiado, compila un AAB nuevo, que hay que subir a Google Play desde Play Console.
+name: Producción
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  fingerprint:
+    name: Huella nativa
+    type: fingerprint
+  buscar_aab:
+    name: Buscar un AAB con esa huella
+    needs: [fingerprint]
+    type: get-build
+    params:
+      fingerprint_hash: ${{ needs.fingerprint.outputs.android_fingerprint_hash }}
+      profile: production
+  compilar_aab:
+    name: Compilar AAB para Google Play
+    needs: [buscar_aab]
+    if: ${{ !needs.buscar_aab.outputs.build_id }}
+    type: build
+    params:
+      platform: android
+      profile: production
+  publicar_actualizacion:
+    name: Publicar actualización
+    needs: [buscar_aab]
+    if: ${{ needs.buscar_aab.outputs.build_id }}
+    type: update
+    params:
+      branch: production
+      platform: android
