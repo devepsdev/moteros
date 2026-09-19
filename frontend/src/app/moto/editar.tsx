@@ -71,7 +71,7 @@ function MotoForm({ moto }: { moto: MotoResponse | null }) {
       const url = await elegirYSubirImagen([16, 10]);
       if (url) setFotoUrl(url);
     } catch (cause) {
-      setError(describeError(cause).message);
+      Alert.alert("No se ha podido subir la foto", describeError(cause).message);
     } finally {
       setSubiendo(false);
     }

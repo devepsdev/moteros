@@ -12,7 +12,7 @@ import Feather from "@expo/vector-icons/Feather";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 
 export default function NuevaPublicacionScreen() {
   const theme = useTheme();
@@ -33,7 +33,7 @@ export default function NuevaPublicacionScreen() {
       const url = await elegirYSubirImagen([4, 3]);
       if (url) setImagenUrl(url);
     } catch (cause) {
-      setError(describeError(cause).message);
+      Alert.alert("No se ha podido subir la imagen", describeError(cause).message);
     } finally {
       setSubiendo(false);
     }

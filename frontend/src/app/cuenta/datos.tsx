@@ -11,7 +11,7 @@ import { useTheme } from "@/theme";
 import Feather from "@expo/vector-icons/Feather";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 
 export default function DatosScreen() {
   const theme = useTheme();
@@ -36,9 +36,20 @@ export default function DatosScreen() {
     setError(null);
     try {
       const url = await elegirYSubirImagen([1, 1]);
-      if (url) setFotoPerfilUrl(url);
+      if (!url) return;
+      // La foto se guarda al momento, con los datos que ya tenía el perfil: el resto del
+      // formulario sigue pendiente de «Guardar cambios».
+      await usuariosApi.actualizarPerfil({
+        nombreUsuario: user.nombreUsuario,
+        nombreCompleto: user.nombreCompleto,
+        ciudad: user.ciudad ?? null,
+        biografia: user.biografia ?? null,
+        fotoPerfilUrl: url,
+      });
+      setFotoPerfilUrl(url);
+      await refreshProfile();
     } catch (cause) {
-      setError(describeError(cause).message);
+      Alert.alert("No se ha podido cambiar la foto", describeError(cause).message);
     } finally {
       setSubiendo(false);
     }

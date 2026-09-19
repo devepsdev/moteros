@@ -80,7 +80,7 @@ export default function RutasScreen() {
           data={rutas.items}
           keyExtractor={(r) => r.uuid}
           renderItem={({ item }) => <RutaCard ruta={item} />}
-          contentContainerStyle={{ paddingHorizontal: theme.screenPadding, gap: theme.spacing.md, flexGrow: 1 }}
+          contentContainerStyle={{ paddingHorizontal: theme.screenPadding, paddingTop: theme.spacing.md, paddingBottom: theme.spacing.xl, gap: theme.spacing.md, flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
           onEndReached={rutas.loadMore}
           onEndReachedThreshold={0.5}
