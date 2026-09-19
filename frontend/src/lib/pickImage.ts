@@ -19,6 +19,6 @@ export async function elegirYSubirImagen(aspect: [number, number] = [4, 3]): Pro
   if (result.canceled || result.assets.length === 0) return null;
 
   const asset = result.assets[0];
-  const subido = await uploadsApi.subirImagen(asset.uri, asset.mimeType, asset.fileName);
+  const subido = await uploadsApi.subirImagen(asset.uri, asset.mimeType);
   return subido.url;
 }
