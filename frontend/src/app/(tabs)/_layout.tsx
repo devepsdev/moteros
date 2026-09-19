@@ -2,6 +2,7 @@ import { useNoLeidos, useSondeoNoLeidos } from "@/lib/noLeidos";
 import { useTheme } from "@/theme";
 import Feather from "@expo/vector-icons/Feather";
 import { Tabs } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
 
@@ -17,6 +18,7 @@ export default function TabsLayout() {
   const theme = useTheme();
   useSondeoNoLeidos();
   const noLeidos = useNoLeidos();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -29,6 +31,10 @@ export default function TabsLayout() {
           borderTopWidth: 1,
           borderTopColor: theme.colors.border,
           elevation: 0,
+          // Más aire bajo los iconos y textos, por encima de la barra de navegación de Android.
+          height: 64 + insets.bottom,
+          paddingTop: 6,
+          paddingBottom: insets.bottom + 10,
         },
         tabBarLabelStyle: { fontFamily: theme.fontFamily.sansSemibold, fontSize: 11, letterSpacing: 0.3 },
         tabBarBadgeStyle: { backgroundColor: theme.colors.accent, color: "#FFFFFF", fontFamily: theme.fontFamily.sansSemibold, fontSize: 10 },

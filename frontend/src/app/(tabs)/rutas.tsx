@@ -59,7 +59,8 @@ export default function RutasScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={{ flexGrow: 0 }}
+        // ScrollView encoge por defecto (flexShrink 1): sin esto, la lista le come la altura y corta los filtros.
+        style={{ flexGrow: 0, flexShrink: 0 }}
         contentContainerStyle={{ paddingHorizontal: theme.screenPadding, paddingVertical: theme.spacing.md, gap: theme.spacing.sm }}
       >
         {DIFICULTADES.map((d) => (
