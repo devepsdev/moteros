@@ -20,8 +20,8 @@
 #
 # Catalunya (2026-09-16): las fichas de Catalunya en Moto enlazan el recorrido en GPX o KML alojado
 # en Google Drive; el scraper guarda el enlace (Drive no permite la descarga a bots) y se importa
-# en el panel. La Guia Vial queda fuera hasta pedirles permiso: es un proyecto personal con miles
-# de páginas. Catalunya.com y el Grand Tour de
+# en el panel. La Guia Vial se descarta (2026-09-19): es un proyecto personal con miles de páginas
+# y las fuentes actuales bastan. Catalunya.com y el Grand Tour de
 # Motoviajeros se retiraron tras la primera pasada: describen zonas, no itinerarios por carretera.
 
 sources:

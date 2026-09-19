@@ -81,12 +81,15 @@ eas build -p android --profile production
 eas submit -p android --latest
 ```
 
-La clave de Google Maps es la del *Maps SDK for Android*; restríngela al paquete
-`dev.deveps.moteros` y a la huella SHA‑1 del certificado de subida que genere EAS.
+La clave de Google Maps es la del *Maps SDK for Android*; restríngela a *Aplicaciones de Android*
+con el paquete `dev.deveps.moteros` y dos huellas SHA‑1: la del certificado de subida de EAS
+(`eas credentials -p android`) y la del certificado con el que Google firma la app al publicarla
+(Play Console → Configuración → Integridad de la app). Sin la segunda, el mapa sale en gris en la
+versión descargada de Play.
 
 ## 8. Antes de publicar
 
 - [ ] Probar en un móvil el registro con la casilla de términos, las denuncias y los bloqueos.
-- [ ] Revisar las sugerencias de ruta pendientes en el panel para que la app no se publique vacía.
-- [ ] Comprobar que las rutas del catálogo tomadas de webs ajenas cuentan con permiso de su autor.
+- [x] Revisar las sugerencias de ruta pendientes en el panel (31 rutas publicadas el 19-09-2026).
+- [ ] Crear la clave de Google Maps y guardarla como secreto de EAS (sección 7).
 - [ ] Crear la cuenta de prueba para los revisores.
