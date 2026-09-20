@@ -1,5 +1,6 @@
 import { useTheme } from "@/theme";
 import Feather from "@expo/vector-icons/Feather";
+import { LinearGradient } from "expo-linear-gradient";
 import { View } from "react-native";
 import { Button } from "./Button";
 import { Text } from "./Text";
@@ -17,18 +18,33 @@ export function EmptyState({ icon = "compass", title, message, actionLabel, onAc
 
   return (
     <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: theme.spacing.huge, paddingHorizontal: theme.screenPadding, gap: theme.spacing.md }}>
-      <View
+      {/* Halo degradado con un aro dentro: una pantalla sin contenido no queda vacía del todo. */}
+      <LinearGradient
+        colors={[theme.colors.accentSoft, "transparent"]}
         style={{
-          width: 64,
-          height: 64,
+          width: 128,
+          height: 128,
           borderRadius: theme.radius.full,
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: theme.colors.accentSoft,
+          marginBottom: theme.spacing.xs,
         }}
       >
-        <Feather name={icon} size={26} color={theme.colors.accent} />
-      </View>
+        <View
+          style={{
+            width: 76,
+            height: 76,
+            borderRadius: theme.radius.full,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: theme.colors.surface,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+          }}
+        >
+          <Feather name={icon} size={30} color={theme.colors.accent} />
+        </View>
+      </LinearGradient>
       <Text variant="title2" center>
         {title}
       </Text>

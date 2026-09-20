@@ -14,17 +14,19 @@ import { formatRelativo } from "@/lib/format";
 import { useAlternarLike } from "@/lib/useAlternarLike";
 import { useAsync } from "@/lib/useAsync";
 import { usePagedList } from "@/lib/usePagedList";
+import { useDesplazamientoTeclado } from "@/lib/useTeclado";
 import { useTheme } from "@/theme";
 import type { Comentario, Publicacion } from "@/types/dto";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Platform, Pressable, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Pressable, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function PublicacionDetalleScreen() {
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const teclado = useDesplazamientoTeclado();
   const { uuid } = useLocalSearchParams<{ uuid: string }>();
   const { user } = useAuth();
 
@@ -139,7 +141,7 @@ export default function PublicacionDetalleScreen() {
   return (
     <Screen>
       {header}
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <View style={{ flex: 1 }}>
         <FlatList
           data={comentarios.items}
           keyExtractor={(c) => c.uuid}
@@ -192,7 +194,7 @@ export default function PublicacionDetalleScreen() {
             gap: theme.spacing.sm,
             paddingHorizontal: theme.screenPadding,
             paddingTop: theme.spacing.sm,
-            paddingBottom: insets.bottom + theme.spacing.sm,
+            paddingBottom: (teclado > 0 ? teclado : insets.bottom) + theme.spacing.sm,
             borderTopWidth: 1,
             borderTopColor: theme.colors.border,
             backgroundColor: theme.colors.surface,
@@ -223,7 +225,7 @@ export default function PublicacionDetalleScreen() {
           />
           <IconButton name="send" variant="accent" size={18} accessibilityLabel="Enviar comentario" disabled={enviando || texto.trim().length === 0} onPress={comentar} />
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Screen>
   );
 }

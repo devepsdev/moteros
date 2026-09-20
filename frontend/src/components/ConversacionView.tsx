@@ -11,11 +11,12 @@ import { describeError } from "@/lib/errors";
 import { fechaDeApi, formatDia, formatHora } from "@/lib/format";
 import { refrescarNoLeidos } from "@/lib/noLeidos";
 import { usePagedList } from "@/lib/usePagedList";
+import { useDesplazamientoTeclado } from "@/lib/useTeclado";
 import { useTheme } from "@/theme";
 import type { Mensaje, PageResponse } from "@/types/dto";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Platform, Pressable, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Pressable, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const INTERVALO_MS = 5_000;
@@ -42,6 +43,8 @@ export function ConversacionView({ conversacionUuid: uuidInicial, interlocutor }
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  // El teclado no encoge la ventana en Android a pantalla completa: se sube el cuadro a mano.
+  const teclado = useDesplazamientoTeclado();
 
   const [conversacionUuid, setConversacionUuid] = useState(uuidInicial);
   const [texto, setTexto] = useState("");
@@ -131,7 +134,7 @@ export function ConversacionView({ conversacionUuid: uuidInicial, interlocutor }
         />
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <View style={{ flex: 1 }}>
         {mensajes.loading && mensajes.items.length === 0 ? (
           <LoadingView />
         ) : mensajes.error && mensajes.items.length === 0 ? (
@@ -185,7 +188,7 @@ export function ConversacionView({ conversacionUuid: uuidInicial, interlocutor }
             gap: theme.spacing.sm,
             paddingHorizontal: theme.screenPadding,
             paddingTop: theme.spacing.sm,
-            paddingBottom: insets.bottom + theme.spacing.sm,
+            paddingBottom: (teclado > 0 ? teclado : insets.bottom) + theme.spacing.sm,
             borderTopWidth: 1,
             borderTopColor: theme.colors.border,
             backgroundColor: theme.colors.surface,
@@ -216,7 +219,7 @@ export function ConversacionView({ conversacionUuid: uuidInicial, interlocutor }
           />
           <IconButton name="send" variant="accent" size={18} accessibilityLabel="Enviar mensaje" disabled={enviando || texto.trim().length === 0} onPress={enviar} />
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Screen>
   );
 }
