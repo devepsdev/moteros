@@ -74,8 +74,8 @@ export default function AccesoScreen() {
 
   return (
     <Screen sinDegradado>
-      {/* Carretera de montaña de fondo, con un velo que se oscurece hacia abajo: la foto se ve
-          entera y el formulario se lee sin esfuerzo. */}
+      {/* Carretera de montaña de fondo. El velo la deja a la vista arriba y ya es opaco al
+          llegar al formulario, que así se lee sobre fondo liso. */}
       <Image
         source={require("../../assets/images/acceso-carretera.webp")}
         style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
@@ -86,10 +86,10 @@ export default function AccesoScreen() {
         pointerEvents="none"
         colors={
           theme.isDark
-            ? ["rgba(14, 15, 17, 0.25)", "rgba(14, 15, 17, 0.55)", "rgba(14, 15, 17, 0.92)", theme.colors.background]
-            : ["rgba(245, 244, 241, 0.30)", "rgba(245, 244, 241, 0.65)", "rgba(245, 244, 241, 0.94)", theme.colors.background]
+            ? ["rgba(14, 15, 17, 0.30)", "rgba(14, 15, 17, 0.62)", theme.colors.background, theme.colors.background]
+            : ["rgba(245, 244, 241, 0.38)", "rgba(245, 244, 241, 0.70)", theme.colors.background, theme.colors.background]
         }
-        locations={[0, 0.35, 0.7, 1]}
+        locations={[0, 0.16, 0.34, 1]}
         style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
       />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
