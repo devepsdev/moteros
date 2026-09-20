@@ -141,6 +141,9 @@ export interface RutaSummary {
   creador: UsuarioSummary;
   puntoInicio: string;
   puntoFin: string;
+  /** Coordenadas de la salida; null en rutas antiguas sin ubicar. */
+  latitudInicio?: number | null;
+  longitudInicio?: number | null;
   distanciaKm: number | null;
   duracionEstimadaMin: number | null;
   dificultad: Dificultad;

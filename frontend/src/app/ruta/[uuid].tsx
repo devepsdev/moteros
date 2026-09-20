@@ -13,6 +13,7 @@ import { Text } from "@/components/ui/Text";
 import { ApiError } from "@/api/client";
 import { describeError } from "@/lib/errors";
 import { etiquetaTerreno, formatDuracion, formatKm, formatRelativo } from "@/lib/format";
+import { abrirEnGoogleMaps } from "@/lib/navegar";
 import { useAsync } from "@/lib/useAsync";
 import { abrirDenuncia } from "@/lib/denuncia";
 import { useRefocus } from "@/lib/useRefocus";
@@ -177,6 +178,16 @@ export default function RutaDetalleScreen() {
               onPress={() => router.push({ pathname: "/publicacion/nueva", params: { rutaUuid: r.uuid, rutaNombre: r.nombre } })}
             />
           </View>
+
+          <Button
+            label="Navegar con Google Maps"
+            variant="secondary"
+            fullWidth
+            icon={<Feather name="navigation" size={16} color={theme.colors.ink} />}
+            disabled={track.length < 2}
+            onPress={() => abrirEnGoogleMaps(track)}
+            style={{ marginTop: -theme.spacing.md }}
+          />
 
           <Button
             label="Organizar quedada"

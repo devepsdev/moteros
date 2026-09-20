@@ -112,6 +112,8 @@ public class EntityDtoMapper {
                 .creador(usuarioSummary(r.getCreador()))
                 .puntoInicio(r.getPuntoInicio())
                 .puntoFin(r.getPuntoFin())
+                .latitudInicio(r.getLatitudInicio())
+                .longitudInicio(r.getLongitudInicio())
                 .distanciaKm(r.getDistanciaKm())
                 .duracionEstimadaMin(r.getDuracionEstimadaMin())
                 .dificultad(r.getDificultad())

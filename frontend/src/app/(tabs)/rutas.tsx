@@ -8,13 +8,14 @@ import { ListFooter, LoadingView } from "@/components/ui/ListFooter";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { DIFICULTADES, TERRENOS } from "@/lib/format";
+import { useUbicacion } from "@/lib/ubicacion";
 import { usePagedList } from "@/lib/usePagedList";
 import { useRefocus } from "@/lib/useRefocus";
 import { useTheme } from "@/theme";
 import type { Dificultad, TipoTerreno } from "@/types/dto";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { FlatList, RefreshControl, ScrollView, View } from "react-native";
+import { Alert, FlatList, RefreshControl, ScrollView, View } from "react-native";
 
 export default function RutasScreen() {
   const theme = useTheme();
@@ -24,6 +25,27 @@ export default function RutasScreen() {
   const [nombre, setNombre] = useState("");
   const [dificultad, setDificultad] = useState<Dificultad | undefined>();
   const [terreno, setTerreno] = useState<TipoTerreno | undefined>();
+  const [cerca, setCerca] = useState(false);
+  const ubicacion = useUbicacion();
+
+  // Radio amplio: el catálogo está repartido y con menos no saldría nada en muchas provincias.
+  const RADIO_KM = 200;
+
+  const alternarCerca = async () => {
+    if (cerca) {
+      setCerca(false);
+      return;
+    }
+    const pos = await ubicacion.pedir();
+    if (!pos) {
+      Alert.alert(
+        "Sin ubicación",
+        "Para ordenar las rutas por cercanía hace falta el permiso de ubicación. Puedes dárselo desde los ajustes del móvil."
+      );
+      return;
+    }
+    setCerca(true);
+  };
 
   // Espera a que se deje de escribir antes de buscar.
   useEffect(() => {
@@ -31,14 +53,24 @@ export default function RutasScreen() {
     return () => clearTimeout(id);
   }, [texto]);
 
+  const desde = cerca ? ubicacion.coords : null;
   const rutas = usePagedList(
-    (page) => rutasApi.listar({ nombre: nombre || undefined, dificultad, tipoTerreno: terreno }, page),
-    [nombre, dificultad, terreno]
+    (page) =>
+      rutasApi.listar(
+        {
+          nombre: nombre || undefined,
+          dificultad,
+          tipoTerreno: terreno,
+          ...(desde ? { latitud: desde.latitud, longitud: desde.longitud, radioKm: RADIO_KM } : {}),
+        },
+        page
+      ),
+    [nombre, dificultad, terreno, desde?.latitud, desde?.longitud]
   );
 
   useRefocus(rutas.reload);
 
-  const hayFiltros = Boolean(nombre || dificultad || terreno);
+  const hayFiltros = Boolean(nombre || dificultad || terreno || desde);
 
   return (
     <Screen>
@@ -63,6 +95,13 @@ export default function RutasScreen() {
         style={{ flexGrow: 0, flexShrink: 0 }}
         contentContainerStyle={{ paddingHorizontal: theme.screenPadding, paddingVertical: theme.spacing.md, gap: theme.spacing.sm }}
       >
+        <Chip
+          label={ubicacion.cargando ? "Buscándote…" : "Cerca de mí"}
+          icon="map-pin"
+          selected={cerca}
+          onPress={alternarCerca}
+        />
+        <View style={{ width: 1, backgroundColor: theme.colors.border, marginHorizontal: theme.spacing.xs }} />
         {DIFICULTADES.map((d) => (
           <Chip key={d.value} label={d.label} selected={dificultad === d.value} onPress={() => setDificultad(dificultad === d.value ? undefined : d.value)} />
         ))}
@@ -80,7 +119,7 @@ export default function RutasScreen() {
         <FlatList
           data={rutas.items}
           keyExtractor={(r) => r.uuid}
-          renderItem={({ item }) => <RutaCard ruta={item} />}
+          renderItem={({ item }) => <RutaCard ruta={item} desde={desde} />}
           contentContainerStyle={{ paddingHorizontal: theme.screenPadding, paddingTop: theme.spacing.md, paddingBottom: theme.spacing.xl, gap: theme.spacing.md, flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
           onEndReached={rutas.loadMore}
@@ -88,7 +127,15 @@ export default function RutasScreen() {
           refreshControl={<RefreshControl refreshing={rutas.loading && rutas.items.length > 0} onRefresh={rutas.reload} tintColor={theme.colors.accent} colors={[theme.colors.accent]} progressBackgroundColor={theme.colors.surface} />}
           ListEmptyComponent={
             hayFiltros ? (
-              <EmptyState icon="search" title="Sin resultados" message="Prueba con otro nombre o quita algún filtro." />
+              <EmptyState
+                icon="search"
+                title="Sin resultados"
+                message={
+                  desde
+                    ? `No hay rutas a menos de ${RADIO_KM} km de donde estás. Quita el filtro de cercanía para verlas todas.`
+                    : "Prueba con otro nombre o quita algún filtro."
+                }
+              />
             ) : (
               <EmptyState
                 icon="map"

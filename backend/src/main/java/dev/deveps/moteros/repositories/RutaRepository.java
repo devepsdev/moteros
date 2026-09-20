@@ -76,21 +76,34 @@ public interface RutaRepository extends JpaRepository<Ruta, Integer> {
                        Pageable pageable);
 
     /**
-     * Rutas cuyo punto de inicio esta a menos de {@code radioKm} del punto dado (Haversine, radio Tierra 6371 km).
-     * Ordenar solo por columnas de la tabla {@code rutas} (consulta nativa).
+     * Rutas cuyo punto de inicio esta a menos de {@code radioKm} del punto dado, de la mas cercana
+     * a la mas lejana (Haversine, radio Tierra 6371 km). Respeta los filtros de nombre, dificultad
+     * y terreno; los que vengan a null no filtran. Consulta nativa: el orden lo fija el ORDER BY,
+     * no el Pageable.
      */
     @Query(value = """
             SELECT r.* FROM rutas r
             WHERE r.latitud_inicio IS NOT NULL AND r.longitud_inicio IS NOT NULL
+              AND (:nombre IS NULL OR LOWER(r.nombre) LIKE LOWER(CONCAT('%', :nombre, '%')))
+              AND (:dificultad IS NULL OR r.dificultad = :dificultad)
+              AND (:tipoTerreno IS NULL OR r.tipo_terreno = :tipoTerreno)
               AND (6371 * acos(
                     cos(radians(:lat)) * cos(radians(r.latitud_inicio)) *
                     cos(radians(r.longitud_inicio) - radians(:lng)) +
                     sin(radians(:lat)) * sin(radians(r.latitud_inicio))
               )) <= :radioKm
+            ORDER BY (6371 * acos(
+                    cos(radians(:lat)) * cos(radians(r.latitud_inicio)) *
+                    cos(radians(r.longitud_inicio) - radians(:lng)) +
+                    sin(radians(:lat)) * sin(radians(r.latitud_inicio))
+              )) ASC
             """,
             countQuery = """
             SELECT count(*) FROM rutas r
             WHERE r.latitud_inicio IS NOT NULL AND r.longitud_inicio IS NOT NULL
+              AND (:nombre IS NULL OR LOWER(r.nombre) LIKE LOWER(CONCAT('%', :nombre, '%')))
+              AND (:dificultad IS NULL OR r.dificultad = :dificultad)
+              AND (:tipoTerreno IS NULL OR r.tipo_terreno = :tipoTerreno)
               AND (6371 * acos(
                     cos(radians(:lat)) * cos(radians(r.latitud_inicio)) *
                     cos(radians(r.longitud_inicio) - radians(:lng)) +
@@ -101,5 +114,8 @@ public interface RutaRepository extends JpaRepository<Ruta, Integer> {
     Page<Ruta> buscarCercanas(@Param("lat") double lat,
                               @Param("lng") double lng,
                               @Param("radioKm") double radioKm,
+                              @Param("nombre") String nombre,
+                              @Param("dificultad") String dificultad,
+                              @Param("tipoTerreno") String tipoTerreno,
                               Pageable pageable);
 }

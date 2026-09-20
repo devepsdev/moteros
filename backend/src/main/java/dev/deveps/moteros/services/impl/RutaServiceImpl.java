@@ -62,10 +62,14 @@ public class RutaServiceImpl implements RutaService {
     public Page<RutaSummaryDTO> filtrar(RutaFilterDTO f, Pageable pageable) {
         Page<Ruta> pagina;
         if (f.hasGeoFilter()) {
-            // La query nativa no admite ORDER BY por nombre de propiedad JPA: se pagina sin sort.
+            // La query nativa ya ordena de la ruta mas cercana a la mas lejana: se pagina sin sort.
             Pageable sinSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
             pagina = rutaRepository.buscarCercanas(
-                    f.getLatitud().doubleValue(), f.getLongitud().doubleValue(), f.getRadioKm(), sinSort);
+                    f.getLatitud().doubleValue(), f.getLongitud().doubleValue(), f.getRadioKm(),
+                    limpiar(f.getNombre()),
+                    f.getDificultad() == null ? null : f.getDificultad().name(),
+                    f.getTipoTerreno() == null ? null : f.getTipoTerreno().name(),
+                    sinSort);
         } else {
             pagina = rutaRepository.filtrar(
                     limpiar(f.getNombre()),

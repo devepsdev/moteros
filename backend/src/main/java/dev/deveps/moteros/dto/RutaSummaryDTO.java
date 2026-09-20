@@ -26,6 +26,11 @@ public class RutaSummaryDTO {
 
     private String puntoFin;
 
+    /** Coordenadas de la salida, para ordenar o pintar distancias desde donde esta el usuario. */
+    private BigDecimal latitudInicio;
+
+    private BigDecimal longitudInicio;
+
     private BigDecimal distanciaKm;
 
     private Integer duracionEstimadaMin;

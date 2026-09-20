@@ -17,11 +17,16 @@ export interface FiltroRutas {
   dificultad?: Dificultad;
   tipoTerreno?: TipoTerreno;
   distanciaMaxKm?: number;
+  /** Cercanía: los tres juntos o ninguno. El servidor ordena de la más cercana a la más lejana. */
+  latitud?: number;
+  longitud?: number;
+  radioKm?: number;
 }
 
 /** Sin filtros usa el listado general; con alguno, el endpoint de filtrado. */
 export function listar(filtro: FiltroRutas, page: number, size = 20): Promise<PageResponse<RutaSummary>> {
-  const conFiltros = Boolean(filtro.dificultad || filtro.tipoTerreno || filtro.distanciaMaxKm);
+  const cerca = filtro.latitud != null && filtro.longitud != null && filtro.radioKm != null;
+  const conFiltros = Boolean(filtro.dificultad || filtro.tipoTerreno || filtro.distanciaMaxKm || cerca);
   if (!conFiltros) {
     return request<PageResponse<RutaSummary>>("/api/rutas", {
       params: { searchText: filtro.nombre, page, size, sortBy: "fechaCreacion", sortDir: "desc" },

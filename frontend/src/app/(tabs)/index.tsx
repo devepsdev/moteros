@@ -1,6 +1,7 @@
 import * as publicacionesApi from "@/api/publicaciones";
+import { FeedDescubrir } from "@/components/FeedDescubrir";
 import { PublicacionCard } from "@/components/PublicacionCard";
-import { EmptyState, ErrorState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
 import { Insignia } from "@/components/ui/Insignia";
 import { ListFooter, LoadingView } from "@/components/ui/ListFooter";
@@ -53,15 +54,7 @@ export default function FeedScreen() {
           onEndReached={feed.loadMore}
           onEndReachedThreshold={0.5}
           refreshControl={<RefreshControl refreshing={feed.loading && feed.items.length > 0} onRefresh={feed.reload} tintColor={theme.colors.accent} colors={[theme.colors.accent]} progressBackgroundColor={theme.colors.surface} />}
-          ListEmptyComponent={
-            <EmptyState
-              icon="radio"
-              title="Tu feed está en silencio"
-              message="Aquí verás lo que publicáis tú y tus amigos. Cuenta tu última salida o comparte una ruta."
-              actionLabel="Publicar algo"
-              onAction={() => router.push("/publicacion/nueva")}
-            />
-          }
+          ListEmptyComponent={<FeedDescubrir />}
           ListFooterComponent={<ListFooter loadingMore={feed.loadingMore} error={feed.items.length > 0 ? feed.error : null} />}
         />
       )}
