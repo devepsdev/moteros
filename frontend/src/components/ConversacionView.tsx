@@ -188,7 +188,7 @@ export function ConversacionView({ conversacionUuid: uuidInicial, interlocutor }
             gap: theme.spacing.sm,
             paddingHorizontal: theme.screenPadding,
             paddingTop: theme.spacing.sm,
-            paddingBottom: (teclado > 0 ? teclado : insets.bottom) + theme.spacing.sm,
+            paddingBottom: (teclado > 0 ? teclado + insets.bottom : insets.bottom) + theme.spacing.sm,
             borderTopWidth: 1,
             borderTopColor: theme.colors.border,
             backgroundColor: theme.colors.surface,
