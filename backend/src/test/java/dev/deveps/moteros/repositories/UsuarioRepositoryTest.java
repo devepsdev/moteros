@@ -71,6 +71,17 @@ class UsuarioRepositoryTest {
         assertThat(todos.getTotalElements()).isEqualTo(2);
     }
 
+    @Test
+    void buscarPorTexto_noDevuelveLaCuentaDelScraper() {
+        Usuario bot = persistir("scraper", "Bot de rutas", "bot@test.com", "Barcelona", true);
+        bot.setRol(dev.deveps.moteros.entities.enums.RolUsuario.scraper);
+        em.persistAndFlush(bot);
+
+        assertThat(usuarioRepository.buscarPorTexto("", PageRequest.of(0, 10)).getContent())
+                .extracting(Usuario::getNombreUsuario).doesNotContain("scraper");
+        assertThat(usuarioRepository.buscarPorTexto("bot", PageRequest.of(0, 10))).isEmpty();
+    }
+
     private Usuario persistir(String nombreUsuario, String nombreCompleto, String email, String ciudad, boolean activo) {
         Usuario u = Usuario.builder()
                 .nombreUsuario(nombreUsuario)
