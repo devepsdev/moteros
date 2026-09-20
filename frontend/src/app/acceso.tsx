@@ -6,6 +6,8 @@ import { Text } from "@/components/ui/Text";
 import { describeError } from "@/lib/errors";
 import { abrirLegal } from "@/lib/legal";
 import { useTheme } from "@/theme";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
@@ -71,7 +73,25 @@ export default function AccesoScreen() {
     : nombreUsuario.trim().length >= 3 && nombreCompleto.trim().length > 0 && email.trim().length > 0 && password.length >= 8 && aceptaTerminos;
 
   return (
-    <Screen>
+    <Screen sinDegradado>
+      {/* Carretera de montaña de fondo, con un velo que se oscurece hacia abajo: la foto se ve
+          entera y el formulario se lee sin esfuerzo. */}
+      <Image
+        source={require("../../assets/images/acceso-carretera.webp")}
+        style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+        contentFit="cover"
+        transition={300}
+      />
+      <LinearGradient
+        pointerEvents="none"
+        colors={
+          theme.isDark
+            ? ["rgba(14, 15, 17, 0.25)", "rgba(14, 15, 17, 0.55)", "rgba(14, 15, 17, 0.92)", theme.colors.background]
+            : ["rgba(245, 244, 241, 0.30)", "rgba(245, 244, 241, 0.65)", "rgba(245, 244, 241, 0.94)", theme.colors.background]
+        }
+        locations={[0, 0.35, 0.7, 1]}
+        style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+      />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <ScrollView
           showsVerticalScrollIndicator={false}
