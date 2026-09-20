@@ -12,13 +12,14 @@ import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
 
 type Mode = "login" | "registro";
 
 export default function AccesoScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { height } = useWindowDimensions();
   const { login, registro } = useAuth();
 
   const [mode, setMode] = useState<Mode>("login");
@@ -34,6 +35,9 @@ export default function AccesoScreen() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const isLogin = mode === "login";
+
+  // Los textos de la cabecera van sobre la foto: una sombra suave los despega del fondo.
+  const sombra = { textShadowColor: "rgba(0, 0, 0, 0.55)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 } as const;
 
   const switchMode = () => {
     setMode(isLogin ? "registro" : "login");
@@ -74,8 +78,8 @@ export default function AccesoScreen() {
 
   return (
     <Screen sinDegradado>
-      {/* Carretera de montaña de fondo. El velo se oscurece hacia abajo: la carretera se ve
-          entera y el formulario sigue teniendo contraste. */}
+      {/* Carretera de montaña de fondo. El velo aprieta arriba, donde el cielo se come los
+          textos, y afloja abajo para que se vean la moto y el asfalto. */}
       <Image
         source={require("../../assets/images/acceso-carretera.webp")}
         style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
@@ -86,10 +90,10 @@ export default function AccesoScreen() {
         pointerEvents="none"
         colors={
           theme.isDark
-            ? ["rgba(14, 15, 17, 0.25)", "rgba(14, 15, 17, 0.55)", "rgba(14, 15, 17, 0.92)", theme.colors.background]
-            : ["rgba(245, 244, 241, 0.30)", "rgba(245, 244, 241, 0.65)", "rgba(245, 244, 241, 0.94)", theme.colors.background]
+            ? ["rgba(14, 15, 17, 0.85)", "rgba(14, 15, 17, 0.68)", "rgba(14, 15, 17, 0.52)", "rgba(14, 15, 17, 0.50)"]
+            : ["rgba(245, 244, 241, 0.90)", "rgba(245, 244, 241, 0.74)", "rgba(245, 244, 241, 0.58)", "rgba(245, 244, 241, 0.56)"]
         }
-        locations={[0, 0.35, 0.7, 1]}
+        locations={[0, 0.3, 0.65, 1]}
         style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
       />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
@@ -98,24 +102,24 @@ export default function AccesoScreen() {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ flexGrow: 1, paddingHorizontal: theme.screenPadding, paddingBottom: theme.spacing.huge }}
         >
-          <View style={{ marginTop: theme.spacing.huge, gap: theme.spacing.sm }}>
+          <View style={{ marginTop: Math.round(height * 0.08), gap: theme.spacing.sm }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.sm }}>
               <MaterialCommunityIcons name="motorbike" size={34} color={theme.colors.accent} />
               <Text variant="display" style={{ fontSize: 34 }}>
                 moter<Text variant="display" color="accent" style={{ fontSize: 34 }}>@</Text>s
               </Text>
             </View>
-            <Text variant="title1" style={{ marginTop: theme.spacing.xl }}>
+            <Text variant="title1" style={{ marginTop: theme.spacing.xl, ...sombra }}>
               {isLogin ? "Arranca" : "Únete a la ruta"}
             </Text>
-            <Text variant="body" color="inkMuted">
+            <Text variant="bodyMedium" style={sombra}>
               {isLogin
                 ? "Entra con tu email o tu nombre de usuario."
                 : "Comparte tus rutas, organiza quedadas y conoce a otros moteros."}
             </Text>
           </View>
 
-          <View style={{ gap: theme.spacing.lg, marginTop: theme.spacing.xxxl }}>
+          <View style={{ gap: theme.spacing.lg, marginTop: theme.spacing.xxl }}>
             {isLogin ? (
               <Input
                 label="Email o usuario"
