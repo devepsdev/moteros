@@ -127,9 +127,17 @@ Los cambios de JavaScript llegan a los usuarios con EAS Update, sin pasar por la
 Google: `eas workflow:run .eas/workflows/produccion.yml` (ver [README](README.md)). Solo hay que
 subir un AAB nuevo a Play Console cuando cambia la parte nativa.
 
-## 9. Antes de publicar
+## 9. Prueba cerrada con 12 probadores
+
+La cuenta de desarrollador es personal y se creó después del 13-11-2023, así que Google no deja
+pedir acceso a producción sin una prueba cerrada con 12 probadores apuntados de forma continua
+durante 14 días seguidos. Los pasos en Play Console, el mensaje para enviar a los probadores y el
+seguimiento de esos días están en [`store/testers.md`](store/testers.md).
+
+## 10. Antes de publicar
 
 - [ ] Probar en un móvil el registro con la casilla de términos, las denuncias y los bloqueos.
 - [x] Revisar las sugerencias de ruta pendientes en el panel (31 rutas publicadas el 19-09-2026).
 - [ ] Crear la clave de Google Maps y guardarla como secreto de EAS (sección 7).
 - [ ] Crear la cuenta de prueba para los revisores.
+- [ ] Reunir los correos de los 12 probadores y arrancar la prueba cerrada (sección 9).
