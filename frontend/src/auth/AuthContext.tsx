@@ -1,3 +1,4 @@
+import { darDeBajaEsteMovil } from "@/lib/push";
 import * as authApi from "@/api/auth";
 import { ApiError } from "@/api/client";
 import * as usuariosApi from "@/api/usuarios";
@@ -72,6 +73,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     const { refreshToken } = authStore.getState();
+    // Antes de limpiar la sesión: la baja del móvil necesita el token de acceso.
+    await darDeBajaEsteMovil();
     await authStore.clearSession();
     if (refreshToken) {
       // Best-effort: si falla, la sesión local ya está cerrada igualmente.

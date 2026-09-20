@@ -1,4 +1,5 @@
 import { AuthProvider, useAuth } from "@/auth/AuthContext";
+import { useAvisosPush } from "@/lib/push";
 import { useTheme } from "@/theme";
 import { BarlowCondensed_600SemiBold, BarlowCondensed_700Bold } from "@expo-google-fonts/barlow-condensed";
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from "@expo-google-fonts/inter";
@@ -39,6 +40,9 @@ export default function RootLayout() {
 function RootNavigator() {
   const theme = useTheme();
   const { isAuthenticated, isLoading, user } = useAuth();
+
+  // Avisos con la app cerrada: se registra el móvil al haber sesión y se atienden los toques.
+  useAvisosPush(isAuthenticated);
 
   useEffect(() => {
     if (!isLoading) SplashScreen.hideAsync();

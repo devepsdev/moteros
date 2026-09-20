@@ -63,6 +63,14 @@
         {
           "locationWhenInUsePermission": "moter@s usa tu ubicación para centrar el mapa al trazar una ruta."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/android-icon-monochrome.png",
+          "color": "#FF6A13",
+          "defaultChannel": "default"
+        }
       ]
     ],
     "experiments": {
