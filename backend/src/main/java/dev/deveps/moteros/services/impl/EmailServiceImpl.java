@@ -71,6 +71,7 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
+    /** Correo en HTML con la identidad de la app: asfalto oscuro y naranja. */
     private String construirCuerpo(String nombre, String codigo) {
         return """
                 <!DOCTYPE html>
@@ -78,42 +79,47 @@ public class EmailServiceImpl implements EmailService {
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <meta name="color-scheme" content="dark">
                     <title>Recuperar contraseña</title>
                 </head>
-                <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
-                    <table width="100%%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px;">
+                <body style="margin: 0; padding: 0; background-color: #0E0F11; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                    <table width="100%%" cellpadding="0" cellspacing="0" role="presentation" style="background-color: #0E0F11; padding: 28px 16px;">
                         <tr>
                             <td align="center">
-                                <table width="480" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <table width="480" cellpadding="0" cellspacing="0" role="presentation" style="width: 100%%; max-width: 480px; background-color: #17191C; border: 1px solid #262A2F; border-radius: 16px; overflow: hidden;">
                                     <tr>
-                                        <td style="background-color: #111827; padding: 24px; text-align: center;">
-                                            <h1 style="color: #ffffff; margin: 0; font-size: 22px;">moter@s</h1>
+                                        <td style="padding: 26px 30px 22px; border-bottom: 1px solid #262A2F;">
+                                            <span style="color: #F4F2EE; font-size: 24px; font-weight: 700; letter-spacing: 0.5px;">moter<span style="color: #FF6A13;">@</span>s</span>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 32px 30px;">
-                                            <h2 style="color: #333333; margin-top: 0; font-size: 18px;">Hola %s,</h2>
-                                            <p style="color: #666666; font-size: 15px; line-height: 1.6;">
-                                                Has solicitado recuperar tu contraseña. Introduce este código en la app para continuar:
+                                        <td style="padding: 30px;">
+                                            <p style="margin: 0 0 6px; color: #FF6A13; font-size: 12px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase;">Recuperar contraseña</p>
+                                            <h1 style="margin: 0 0 16px; color: #F4F2EE; font-size: 22px; line-height: 1.25;">Hola %s</h1>
+                                            <p style="margin: 0; color: #A6A29B; font-size: 15px; line-height: 1.6;">
+                                                Has pedido recuperar tu contraseña. Escribe este código en la app para continuar:
                                             </p>
-                                            <table width="100%%" cellpadding="0" cellspacing="0" style="margin: 25px 0;">
+                                            <table width="100%%" cellpadding="0" cellspacing="0" role="presentation" style="margin: 26px 0;">
                                                 <tr>
-                                                    <td align="center">
-                                                        <span style="display: inline-block; padding: 16px 32px; background-color: #f1f5f9; border-radius: 6px; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #111827;">%s</span>
+                                                    <td align="center" style="background-color: #1F2226; border: 1px solid #3A3F46; border-radius: 12px; padding: 20px 10px;">
+                                                        <span style="color: #FF6A13; font-size: 34px; font-weight: 700; letter-spacing: 10px;">%s</span>
                                                     </td>
                                                 </tr>
                                             </table>
-                                            <p style="margin: 0; color: #856404; font-size: 13px; text-align: center;">
-                                                Este código caduca en %d minutos.
+                                            <p style="margin: 0; color: #6F6C66; font-size: 13px; text-align: center;">
+                                                El código caduca en %d minutos.
                                             </p>
-                                            <p style="color: #999999; font-size: 13px; line-height: 1.6; margin-top: 25px; padding-top: 15px; border-top: 1px solid #eeeeee;">
-                                                Si no has solicitado recuperar tu contraseña, puedes ignorar este correo con tranquilidad: tu contraseña actual seguirá siendo válida.
+                                            <p style="margin: 26px 0 0; padding-top: 18px; border-top: 1px solid #262A2F; color: #6F6C66; font-size: 13px; line-height: 1.6;">
+                                                Si no has sido tú, ignora este correo: tu contraseña actual sigue siendo válida.
                                             </p>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td style="background-color: #f8f8f8; padding: 16px 30px; text-align: center; border-top: 1px solid #eeeeee;">
-                                            <p style="color: #999999; font-size: 12px; margin: 0;">© 2026 moter@s</p>
+                                        <td style="background-color: #121417; padding: 16px 30px; border-top: 1px solid #262A2F;">
+                                            <p style="margin: 0; color: #6F6C66; font-size: 12px;">
+                                                moter@s · <a href="https://moteros.deveps.dev/privacidad" style="color: #A6A29B; text-decoration: underline;">Privacidad</a>
+                                                · <a href="https://moteros.deveps.dev/terminos" style="color: #A6A29B; text-decoration: underline;">Términos</a>
+                                            </p>
                                         </td>
                                     </tr>
                                 </table>
