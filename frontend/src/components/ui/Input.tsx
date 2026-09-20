@@ -20,7 +20,7 @@ export function Input({ label, error, icon, containerStyle, multiline, ...rest }
   return (
     <View style={[{ gap: theme.spacing.sm }, containerStyle]}>
       {label ? (
-        <Text variant="overline" color="inkFaint">
+        <Text variant="overline" color="inkMuted">
           {label}
         </Text>
       ) : null}
