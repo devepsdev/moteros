@@ -45,3 +45,6 @@ example
 # Compilaciones de EAS descargadas
 *.aab
 *.apk
+
+# Clave de servicio de Firebase para los avisos push: es secreta (ver NOTIFICACIONES-PUSH.md)
+*-firebase-adminsdk-*.json

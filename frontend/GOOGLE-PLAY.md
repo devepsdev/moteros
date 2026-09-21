@@ -46,7 +46,9 @@ personales de nadie y que todas usen el mismo tema (oscuro o claro).
 ## 3. Seguridad de los datos
 
 Los datos que recoge la app, tal como los describe la política de privacidad. Ninguno se comparte
-con terceros con fines publicitarios y no hay publicidad ni analítica.
+con terceros con fines publicitarios y no hay publicidad ni analítica. Para Google, lo que sale del
+móvil cuenta como recogido aunque no se guarde: por eso la ubicación aproximada de «Cerca de mí»
+se declara, marcada como procesada de forma efímera.
 
 | Tipo de dato | Se recoge | Obligatorio | Para qué |
 |---|---|---|---|
@@ -57,8 +59,10 @@ con terceros con fines publicitarios y no hay publicidad ni analítica.
 | Fotos | Sí | No | Funciones de la app (perfil, motos, publicaciones) |
 | Mensajes con otros usuarios | Sí | No | Funciones de la app (chat) |
 | Otro contenido: rutas, quedadas, publicaciones y comentarios | Sí | No | Funciones de la app |
-| Ubicación | **No se recoge** | — | Solo se usa en el dispositivo para centrar el mapa; lo que se envía son los puntos que el usuario marca a mano |
-| Identificadores del dispositivo o de publicidad | No | — | — |
+| Ubicación aproximada | Sí, **procesada de forma efímera** (no se guarda) | No | Funciones de la app: solo al activar «Cerca de mí», redondeada a unos 1 km |
+| Ubicación precisa | No sale del móvil | — | Centra el mapa y calcula el «a X km» en el dispositivo; lo que se guarda son los puntos que el usuario marca a mano |
+| Identificadores del dispositivo | Sí (token de avisos push) | No | Funciones de la app: enviar notificaciones. Se comparte con Expo y Google FCM como proveedores de servicio |
+| Identificadores de publicidad | No | — | — |
 
 Responde además: datos cifrados en tránsito (sí, HTTPS) y el usuario puede pedir que se borren
 sus datos (sí, desde la app y por correo).

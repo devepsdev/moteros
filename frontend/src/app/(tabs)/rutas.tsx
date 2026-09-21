@@ -17,6 +17,9 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, FlatList, RefreshControl, ScrollView, View } from "react-native";
 
+/** Dos decimales de grado: en torno a un kilómetro, suficiente para ordenar por cercanía. */
+const aproximar = (grados: number) => Math.round(grados * 100) / 100;
+
 export default function RutasScreen() {
   const theme = useTheme();
   const router = useRouter();
@@ -61,7 +64,9 @@ export default function RutasScreen() {
           nombre: nombre || undefined,
           dificultad,
           tipoTerreno: terreno,
-          ...(desde ? { latitud: desde.latitud, longitud: desde.longitud, radioKm: RADIO_KM } : {}),
+          // Al servidor solo va una ubicación aproximada (unos 1 km); la precisa se queda en el
+          // móvil para calcular el «a X km» de cada tarjeta.
+          ...(desde ? { latitud: aproximar(desde.latitud), longitud: aproximar(desde.longitud), radioKm: RADIO_KM } : {}),
         },
         page
       ),
