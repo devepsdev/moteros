@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "885896917220",
+    "project_id": "moteros-41ea4",
+    "storage_bucket": "moteros-41ea4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:885896917220:android:4d4306f4689e4941633cf1",
+        "android_client_info": {
+          "package_name": "dev.deveps.moteros"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxoVA_XN_3S4rfh92M8pfp5IhuIaJw2eI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
