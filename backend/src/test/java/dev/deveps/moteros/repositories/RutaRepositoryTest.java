@@ -66,12 +66,20 @@ class RutaRepositoryTest {
     @Test
     void buscarCercanas_haversineFiltraPorRadio() {
         // Alrededor de Madrid, 50 km: solo la ruta de la Sierra
-        Page<Ruta> cerca = rutaRepository.buscarCercanas(40.4168, -3.7038, 50, PageRequest.of(0, 10));
+        Page<Ruta> cerca = rutaRepository.buscarCercanas(40.4168, -3.7038, 50, null, null, null, PageRequest.of(0, 10));
         assertThat(cerca.getContent()).extracting(Ruta::getNombre).containsExactly("Sierra de Madrid");
 
-        // Radio enorme: las dos
-        Page<Ruta> lejos = rutaRepository.buscarCercanas(40.4168, -3.7038, 1000, PageRequest.of(0, 10));
+        // Radio enorme: las dos, de la mas cercana a la mas lejana
+        Page<Ruta> lejos = rutaRepository.buscarCercanas(40.4168, -3.7038, 1000, null, null, null, PageRequest.of(0, 10));
         assertThat(lejos.getTotalElements()).isEqualTo(2);
+        assertThat(lejos.getContent().get(0).getNombre()).isEqualTo("Sierra de Madrid");
+    }
+
+    @Test
+    void buscarCercanas_respetaElFiltroDeNombre() {
+        Page<Ruta> res = rutaRepository.buscarCercanas(40.4168, -3.7038, 1000, "sierra", null, null,
+                PageRequest.of(0, 10));
+        assertThat(res.getContent()).extracting(Ruta::getNombre).containsExactly("Sierra de Madrid");
     }
 
     @Test

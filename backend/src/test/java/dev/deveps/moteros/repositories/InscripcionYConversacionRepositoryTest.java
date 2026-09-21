@@ -32,6 +32,24 @@ class InscripcionYConversacionRepositoryTest {
     @Autowired
     private ConversacionRepository conversacionRepository;
 
+    @Autowired
+    private QuedadaRepository quedadaRepository;
+
+    @Test
+    void filtrar_incluyeLasQuedadasSinRutaAsociada() {
+        // Una quedada no tiene por que ir ligada a una ruta del catalogo; antes el filtro las
+        // perdia todas y la pestana de quedadas salia vacia.
+        Usuario org = usuario("org");
+        quedada(org, "sin ruta", LocalDateTime.now().plusDays(3));
+
+        var todas = quedadaRepository.filtrar(null, null, null, null, null, null, null, null, PageRequest.of(0, 10));
+        var proximas = quedadaRepository.filtrar(null, null, EstadoQuedada.programada, null, null, null, null,
+                LocalDateTime.now(), PageRequest.of(0, 10));
+
+        assertThat(todas.getContent()).extracting(Quedada::getTitulo).containsExactly("sin ruta");
+        assertThat(proximas.getTotalElements()).isEqualTo(1);
+    }
+
     @Test
     void findActivasByUsuarioUuid_excluyeCanceladasYOrdenaPorFechaDeQuedadaDesc() {
         Usuario org = usuario("org");

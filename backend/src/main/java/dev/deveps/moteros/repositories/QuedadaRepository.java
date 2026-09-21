@@ -36,12 +36,16 @@ public interface QuedadaRepository extends JpaRepository<Quedada, Integer> {
             """)
     Page<Quedada> buscarPorTexto(@Param("texto") String texto, Pageable pageable);
 
+    /**
+     * La ruta va con LEFT JOIN explicito: escrito como {@code q.ruta.uuid}, JPA hace un INNER JOIN
+     * y deja fuera todas las quedadas que no estan ligadas a una ruta.
+     */
     @Query("""
-            SELECT q FROM Quedada q WHERE
+            SELECT q FROM Quedada q LEFT JOIN q.ruta r WHERE
             (:titulo IS NULL OR LOWER(q.titulo) LIKE LOWER(CONCAT('%', :titulo, '%'))) AND
             (:nivel IS NULL OR q.nivelRecomendado = :nivel) AND
             (:estado IS NULL OR q.estado = :estado) AND
-            (:rutaUuid IS NULL OR q.ruta.uuid = :rutaUuid) AND
+            (:rutaUuid IS NULL OR r.uuid = :rutaUuid) AND
             (:organizadorUuid IS NULL OR q.organizador.uuid = :organizadorUuid) AND
             (:fechaDesde IS NULL OR q.fechaHora >= :fechaDesde) AND
             (:fechaHasta IS NULL OR q.fechaHora <= :fechaHasta) AND

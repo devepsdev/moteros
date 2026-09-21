@@ -27,6 +27,9 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -41,6 +44,7 @@ class NotificacionServiceImplTest {
     @Mock private ConversacionRepository conversacionRepository;
     @Mock private RutaRepository rutaRepository;
     @Mock private UsuarioAutenticadoProvider usuarioAutenticado;
+    @Mock private dev.deveps.moteros.services.PushService pushService;
 
     private NotificacionServiceImpl service;
 
@@ -50,7 +54,21 @@ class NotificacionServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new NotificacionServiceImpl(notificacionRepository, publicacionRepository, quedadaRepository,
-                conversacionRepository, rutaRepository, usuarioAutenticado, new EntityDtoMapper());
+                conversacionRepository, rutaRepository, usuarioAutenticado, pushService, new EntityDtoMapper());
+    }
+
+    @Test
+    void notificar_avisaTambienAlMovilDelDestinatario() {
+        service.notificar(destino, TipoNotificacion.like, 7, origen, "A Origen le gusta tu publicacion");
+
+        verify(pushService).enviar(eq(destino), anyString(), eq("A Origen le gusta tu publicacion"), anyMap());
+    }
+
+    @Test
+    void notificar_aUnoMismo_noAvisaAlMovil() {
+        service.notificar(destino, TipoNotificacion.like, 7, destino, "algo");
+
+        verifyNoInteractions(pushService);
     }
 
     @Test
