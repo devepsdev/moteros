@@ -170,7 +170,10 @@ export function ConversacionView({ conversacionUuid: uuidInicial, interlocutor }
               );
             }}
             ListEmptyComponent={
-              <View style={{ flex: 1, alignItems: "center", justifyContent: "center", transform: [{ scaleY: -1 }], gap: theme.spacing.sm }}>
+              // Sin transform propio: la lista invertida ya endereza este bloque con el volteo que toca
+              // en cada plataforma (en Android, los dos ejes). Uno nuestro sustituiría al suyo y en
+              // Android el texto saldría en espejo.
+              <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: theme.spacing.sm }}>
                 <Avatar nombre={interlocutor.nombre} fotoUrl={interlocutor.foto} size={64} />
                 <Text variant="body" color="inkMuted" center>
                   Escribe a {interlocutor.nombre} para empezar la conversación.
