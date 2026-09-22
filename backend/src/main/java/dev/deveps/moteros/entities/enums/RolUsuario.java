@@ -4,5 +4,7 @@ package dev.deveps.moteros.entities.enums;
 public enum RolUsuario {
     user, admin,
     /** Cuenta del scraper: permisos de usuario, pero puede enviar sugerencias de rutas. */
-    scraper
+    scraper,
+    /** Cuenta de la propia app (firma el catalogo): no sale en el buscador de moteros. */
+    oficial
 }

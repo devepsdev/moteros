@@ -40,13 +40,14 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     List<LocalDateTime> fechasRegistro();
 
     /**
-     * Buscador de moteros de la app: solo cuentas activas y sin la del bot del scraper, que es
-     * tecnica y no se puede agregar como amigo.
+     * Buscador de moteros de la app: solo cuentas activas y sin las de la casa (el bot del
+     * scraper y las cuentas oficiales), que son tecnicas y no se pueden agregar como amigo.
      */
     @Query("""
             SELECT u FROM Usuario u
             WHERE u.activo = true
-              AND u.rol <> dev.deveps.moteros.entities.enums.RolUsuario.scraper
+              AND u.rol NOT IN (dev.deveps.moteros.entities.enums.RolUsuario.scraper,
+                                dev.deveps.moteros.entities.enums.RolUsuario.oficial)
               AND (
                 :texto IS NULL OR :texto = '' OR
                 LOWER(u.nombreUsuario) LIKE LOWER(CONCAT('%', :texto, '%')) OR

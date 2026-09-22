@@ -3,7 +3,7 @@
  * BigDecimal -> number; LocalDateTime -> string ISO sin zona (hora de España).
  */
 
-export type RolUsuario = 'user' | 'admin' | 'scraper';
+export type RolUsuario = 'user' | 'admin' | 'scraper' | 'oficial';
 export type Dificultad = 'facil' | 'moderada' | 'dificil' | 'extrema';
 export type TipoTerreno = 'asfalto' | 'offroad' | 'mixto';
 export type EstadoSugerencia = 'pendiente' | 'aprobada' | 'rechazada';

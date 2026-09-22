@@ -17,6 +17,7 @@ export const ROLES: { value: RolUsuario; label: string }[] = [
   { value: 'user', label: 'Usuario' },
   { value: 'admin', label: 'Administrador' },
   { value: 'scraper', label: 'Scraper' },
+  { value: 'oficial', label: 'Oficial' },
 ];
 
 export const ESTADO_SUGERENCIA_LABELS: Record<EstadoSugerencia, string> = {
