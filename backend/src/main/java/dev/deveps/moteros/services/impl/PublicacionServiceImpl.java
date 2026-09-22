@@ -135,7 +135,7 @@ public class PublicacionServiceImpl implements PublicacionService {
 
         notificacionService.notificar(publicacion.getUsuario(), TipoNotificacion.comentario,
                 publicacion.getId(), autor,
-                autor.getNombreCompleto() + " ha comentado tu publicacion.");
+                autor.getNombreCompleto() + " ha comentado tu publicación.");
 
         return mapper.comentarioResponse(guardado);
     }
@@ -172,7 +172,7 @@ public class PublicacionServiceImpl implements PublicacionService {
                             .build());
                     notificacionService.notificar(publicacion.getUsuario(), TipoNotificacion.like,
                             publicacion.getId(), usuario,
-                            "A " + usuario.getNombreCompleto() + " le ha gustado tu publicacion.");
+                            "A " + usuario.getNombreCompleto() + " le ha gustado tu publicación.");
                     return true;
                 });
     }

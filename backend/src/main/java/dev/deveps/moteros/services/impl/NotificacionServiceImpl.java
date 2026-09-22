@@ -145,10 +145,10 @@ public class NotificacionServiceImpl implements NotificacionService {
     private static String tituloPush(TipoNotificacion tipo, String quien) {
         String alguien = quien == null || quien.isBlank() ? "Alguien" : quien;
         return switch (tipo) {
-            case like -> alguien + " le ha dado a me gusta";
-            case comentario -> alguien + " ha comentado tu publicacion";
-            case solicitud_amistad -> alguien + " quiere seguirte";
-            case amistad_aceptada -> alguien + " ha aceptado tu solicitud";
+            case like -> "A " + alguien + " le ha gustado tu publicación";
+            case comentario -> alguien + " ha comentado tu publicación";
+            case solicitud_amistad -> "Solicitud de amistad de " + alguien;
+            case amistad_aceptada -> alguien + " ha aceptado tu solicitud de amistad";
             case inscripcion_quedada -> alguien + " se ha apuntado a tu quedada";
             case nueva_quedada -> "Nueva quedada de " + alguien;
             case quedada_cancelada -> "Quedada cancelada";
