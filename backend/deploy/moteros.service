@@ -9,7 +9,7 @@ Type=simple
 User=ubuntu
 Group=ubuntu
 WorkingDirectory=/opt/apps/moteros/
-ExecStart=/usr/bin/java -Djava.awt.headless=true -Xms256m -Xmx768m -XX:+UseSerialGC -jar /opt/apps/moteros/moteros.jar --spring.profiles.active=prod --server.port=8080
+ExecStart=/usr/bin/java -Djava.awt.headless=true -Duser.timezone=Europe/Madrid -Xms256m -Xmx768m -XX:+UseSerialGC -jar /opt/apps/moteros/moteros.jar --spring.profiles.active=prod --server.port=8080
 Restart=always
 RestartSec=5
 SuccessExitStatus=143

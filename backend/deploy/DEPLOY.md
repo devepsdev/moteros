@@ -127,3 +127,12 @@ antes del `location /` del proxy, guardando una copia `.bak-<fecha>`. Queda en
   EOF
   ```
   Rotar `JWT_SECRET` invalida los access token vigentes (15 min); los refresh token siguen en BBDD.
+
+## Zona horaria
+
+El servicio arranca con `-Duser.timezone=Europe/Madrid`. La API devuelve fechas sin zona
+(`LocalDateTime`) y la app las interpreta como hora local del movil: si la JVM va en UTC, todo lo
+que marca el servidor (mensajes, publicaciones, notificaciones) se ve dos horas mas viejo en
+verano. El VPS sigue en UTC, igual que MySQL: un `NOW()` escrito a mano desde `mysql` va en UTC y
+hay que sumarle el desfase para que cuadre con lo que escribe la aplicacion.
+
