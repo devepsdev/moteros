@@ -13,9 +13,11 @@ Referencia oficial:
 En Play Console:
 
 1. **Prueba y publicación → Pruebas → Prueba cerrada**, crear una versión y subir el AAB.
-2. En la pestaña **Probadores**, crear una lista de correos y pegar las direcciones. Deben ser
-   **cuentas de Google** (gmail.com o cualquier correo asociado a una cuenta de Google), la misma
-   con la que cada uno tiene configurado su móvil Android.
+2. En la pestaña **Probadores**, crear una lista de correos y pegar las direcciones. Cada una
+   tiene que ser **una cuenta de Google**: normalmente un Gmail, aunque también vale un Hotmail o
+   cualquier otra dirección con la que se haya creado una cuenta de Google. Lo seguro es pedirles
+   la dirección que les aparece en Play Store al tocar su foto de perfil, porque es la que usa el
+   móvil.
 3. Copiar el **enlace de participación** («Copiar enlace»): es el que se les envía.
 4. Comprobar en **Países y regiones** que España (y el país de cada probador) está incluido.
 5. Rellenar **Contenido de la aplicación** (política de privacidad, acceso para revisores,
@@ -44,8 +46,10 @@ Recomendaciones:
 >    `PEGAR AQUÍ EL ENLACE DE PARTICIPACIÓN`
 > 3. En esa misma página, pulsa **«Descargar en Google Play»** e instala la app.
 > 4. Regístrate dentro de la app con tu correo y úsala de vez en cuando durante las dos semanas.
-> 5. **Importante:** no te salgas del programa de pruebas ni desinstales la app durante esos 14
->    días. Si alguien lo hace, el contador se reinicia para todos y hay que volver a empezar.
+> 5. **Importante:** no te salgas del programa de pruebas durante esos 14 días. Salirse hay que
+>    hacerlo a propósito, entrando en ese mismo enlace y pulsando «Abandonar el programa», así que
+>    no pasa por accidente: reiniciar el móvil, quedarte sin batería o incluso desinstalar la app
+>    no te sacan de la prueba. Aun así, déjala instalada y úsala de vez en cuando.
 >
 > **Qué me viene bien que pruebes** (no hace falta todo, cuanto más mejor):
 >
@@ -85,5 +89,6 @@ puede tardar varios días.
 | «Me dice que no está disponible para mi dispositivo» | El móvil está con otra cuenta de Google, no con la que diste de alta. Que la comprueben en Play Store → foto de perfil. |
 | «El enlace no hace nada» | Aún no se ha propagado la versión, o no ha pulsado «Convertirme en probador» antes de ir a la ficha. |
 | «Ya tenía la app instalada» | Si probaron el APK que mandaste tú por WhatsApp, tienen que **desinstalarlo primero**: está firmado con otro certificado y Play no puede actualizarlo. Sus datos no se pierden, están en el servidor. |
+| «Se me ha desinstalado / he cambiado de móvil» | No les saca de la prueba: siguen apuntados con su cuenta de Google. Basta con volver a instalarla desde Play. |
 | «No me llega ningún correo» | Google no envía nada: el acceso va por el enlace de participación que les mandas tú. |
 | «No veo la app en Play buscándola» | Una app en prueba cerrada no sale en el buscador. Solo se llega por el enlace. |
