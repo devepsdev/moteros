@@ -63,9 +63,10 @@ cd /opt/apps/moteros-src/scraper
 SCRAPER_HOME=/opt/apps/moteros-scraper /opt/apps/moteros-scraper/venv/bin/python main.py --dry-run
 ```
 
-La pasada automática queda en el crontab del usuario (lunes a las 06:30, media hora después
-de la de rastrix), con logs en `/opt/apps/moteros-scraper/logs/`. Para actualizar código o
-fuentes, vuelve a ejecutar `install.sh`.
+La pasada automática la lanza el timer de systemd `moteros-scraper.timer` (lunes a las 06:30,
+media hora después de la de rastrix), con logs en `/opt/apps/moteros-scraper/logs/`. Si falla
+alguna fuente, la pasada termina con error y queda marcada como fallida (`systemctl status
+moteros-scraper`). Para actualizar código o fuentes, vuelve a ejecutar `install.sh`.
 
 ## Desarrollo
 
