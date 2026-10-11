@@ -38,7 +38,15 @@ done
 
 if [[ -d "$SRC_DIR/.git" ]]; then
     echo "Actualizando el repositorio en $SRC_DIR..."
+    before="$(git -C "$SRC_DIR" rev-parse HEAD)"
     git -C "$SRC_DIR" pull --ff-only --quiet
+    # Si el pull ha cambiado este instalador, bash seguiría ejecutando la versión vieja
+    # que ya tiene cargada: se relanza la nueva (una sola vez).
+    if [[ -z "${INSTALL_RELANZADO:-}" ]] \
+        && ! git -C "$SRC_DIR" diff --quiet "$before" HEAD -- scraper/scripts/install.sh; then
+        echo "install.sh ha cambiado: relanzando la versión nueva..."
+        INSTALL_RELANZADO=1 exec bash "$SRC_DIR/scraper/scripts/install.sh" "$@"
+    fi
 else
     echo "Clonando el repositorio en $SRC_DIR..."
     git clone --quiet "$REPO_URL" "$SRC_DIR"
